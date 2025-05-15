@@ -55,9 +55,11 @@ import com.example.lombatif.ui.theme.LombaTIFTheme
 class Registrasi : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
-            LombaTIFTheme {
+            var isDarkMode by remember { mutableStateOf(false) }
+            LombaTIFTheme(darkTheme = isDarkMode) {
                Register()
             }
         }
@@ -66,13 +68,16 @@ class Registrasi : ComponentActivity() {
 
 @Composable
 fun Register(){
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var checked by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    Box(modifier = Modifier.fillMaxSize()){
+    Box(modifier = Modifier
+        .fillMaxSize()){
+        }
         Column(modifier = Modifier
             .padding(16.dp)
             .fillMaxSize(),
@@ -273,7 +278,6 @@ fun Register(){
 
             }
         }
-    }
 }
 
 @Preview(showBackground = true)
