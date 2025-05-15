@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
     <application
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,24 +16,30 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LombaTIF"
         tools:targetApi="31">
+
         <activity
-            android:name=".component.Registrasi"
-            android:exported="false"
-            android:label="@string/title_activity_registrasi"
-            android:theme="@style/Theme.LombaTIF" />
-        <activity
-            android:name=".component.Register"
-            android:exported="false" />
-        <activity
-            android:name=".component.MainActivity"
+            android:name=".component.DaftarLomba"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="@string/title_activity_daftar_lomba"
             android:theme="@style/Theme.LombaTIF">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".component.Registrasi"
+            android:exported="false"
+            android:label="@string/title_activity_registrasi"
+            android:theme="@style/Theme.LombaTIF" />
+
+        <activity
+            android:name=".component.MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.LombaTIF">
+
         </activity>
     </application>
 

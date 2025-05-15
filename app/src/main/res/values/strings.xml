@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LombaTIF</string>
     <string name="title_activity_registrasi">Registrasi</string>
+    <string name="title_activity_daftar_lomba">DaftarLomba</string>
 </resources>
