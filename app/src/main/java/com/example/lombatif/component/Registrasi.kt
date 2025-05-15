@@ -78,6 +78,7 @@ fun Register(viewRegisterUser: ViewRegisterUser = viewModel() ){
     var confirmPassword by remember { mutableStateOf("") }
     var checked by remember { mutableStateOf(false) }
     val showDialog = remember { mutableStateOf(false) }
+    val succes = remember { mutableStateOf(false) }
     val context = LocalContext.current
     Box(modifier = Modifier
         .fillMaxSize()){
@@ -247,12 +248,15 @@ fun Register(viewRegisterUser: ViewRegisterUser = viewModel() ){
                     onClick = ({
                         if (!viewRegisterUser.validasi(email,password)){
                             showDialog.value = true
-                        }
-                        if (password == confirmPassword){
-                            viewRegisterUser.postUser(name,email,password)
                         }else{
-                            Toast.makeText(context, "Password dan Konfirmasi Password tidak cocok", Toast.LENGTH_SHORT).show()
+                            if (password == confirmPassword){
+                                viewRegisterUser.postUser(name,email,password)
+                                succes.value = true
+                            }else{
+                                Toast.makeText(context, "Password dan Konfirmasi Password tidak cocok", Toast.LENGTH_SHORT).show()
+                            }
                         }
+
 
                     }),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
@@ -308,6 +312,29 @@ fun Register(viewRegisterUser: ViewRegisterUser = viewModel() ){
                 Button(onClick = {
                     // Tutup dialog saat tombol OK ditekan
                     showDialog.value = false
+                }) {
+                    Text("OK")
+                }
+            }
+
+        )
+    }
+    if (succes.value) {
+        AlertDialog(
+            onDismissRequest = {
+                // Menutup dialog saat di luar dialog atau tombol close ditekan
+                succes.value = false
+            },
+            title = {
+                Text("Succes 😂✅")
+            },
+            text = {
+                Text(viewRegisterUser.stateUI)
+            },
+            confirmButton = {
+                Button(onClick = {
+                    // Tutup dialog saat tombol OK ditekan
+                    succes.value = false
                 }) {
                     Text("OK")
                 }
