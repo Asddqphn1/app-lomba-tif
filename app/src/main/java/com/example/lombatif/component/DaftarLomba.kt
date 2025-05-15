@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.lombatif.models.DaftarLomba
+import com.example.lombatif.models.get.DaftarLomba
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewDaftarLomba
 import java.text.SimpleDateFormat

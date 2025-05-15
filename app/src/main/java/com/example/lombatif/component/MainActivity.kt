@@ -1,10 +1,12 @@
 package com.example.lombatif.component
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -178,6 +180,7 @@ fun Login(){
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Text(
+
                     buildAnnotatedString {
                         append("Don't have an account yet? ")
 
@@ -192,7 +195,11 @@ fun Login(){
                     },
                     fontSize = 15.sp,
                     color = Color.Gray,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(context, Registrasi::class.java)
+                        context.startActivity(intent)
+                    }
                 )
 
             }
