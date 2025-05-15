@@ -52,16 +52,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lombatif.R
-import com.example.lombatif.component.ui.theme.LombaTIFTheme
+
 
 class Registrasi : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LombaTIFTheme {
-               Register()
-            }
+
         }
     }
 }
