@@ -1,4 +1,4 @@
-package com.example.lombatif.models
+package com.example.lombatif.models.get
 
 import com.google.gson.annotations.SerializedName
 import java.util.Date
