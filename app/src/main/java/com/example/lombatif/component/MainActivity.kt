@@ -20,13 +20,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,28 +53,46 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
+import com.example.lombatif.viewModels.ViewLogin
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewmodel = ViewModelProvider(this)[ViewLogin::class.java]
         enableEdgeToEdge()
         setContent {
             LombaTIFTheme {
-                Login()
+                Login(viewmodel) {
+                    startActivity(Intent(this, DaftarLomba::class.java))
+                    finish()
+                }
             }
         }
     }
 }
 
 @Composable
-fun Login(){
+fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
+    val loginState = viewLogin.loginState
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    LaunchedEffect(loginState.value) {
+        when (val state = loginState.value) {
+            is ViewLogin.LoginState.Success -> {
+                onLoginSuccess()
+            }
+            else -> {}
+        }
+    }
     Box (modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier
             .padding(16.dp)
@@ -163,7 +187,12 @@ fun Login(){
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Button(
-                    onClick = ({}),
+
+                    onClick = ({
+                        if (email.isNotBlank() && password.isNotBlank()) {
+                            viewLogin.postLogin(email, password)
+                        }
+                    }),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,18 +230,71 @@ fun Login(){
                         context.startActivity(intent)
                     }
                 )
+                when (val state = loginState.value) {
+                    is ViewLogin.LoginState.Loading -> {
+                        CircularProgressIndicator()
+                    }
+                    is ViewLogin.LoginState.Error -> {
+                        LaunchedEffect(state) {
+                            showDialog.value = true
+                        }
+                        ErrorDialog(
+                            message = state.message,
+                            showDialog = showDialog,
+                            onDismiss = {
+                                showDialog.value = false
+                                viewLogin.resetState() // Tambahkan fungsi ini di ViewModel
+                            }
+                        )
+                    }
+                    else -> {}
+                }
 
             }
         }
     }
 }
 
-
-@Preview(showBackground = true)
 @Composable
-fun ShowLogin(){
-    Login()
+fun ErrorDialog(
+    message: String,
+    showDialog: MutableState<Boolean>,
+    onDismiss: () -> Unit = { showDialog.value = false }
+) {
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("OK")
+                }
+            },
+            title = {
+                Text(
+                    text = "Login Gagal",
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    text = message,
+                    color = Color.White
+                )
+            },
+            containerColor = Color(0xFFD32F2F),
+            titleContentColor = Color.White,
+            textContentColor = Color.White
+        )
+    }
 }
+
+
+
 
 
 

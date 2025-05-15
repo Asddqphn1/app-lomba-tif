@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,40 +49,49 @@ class DaftarLomba : ComponentActivity() {
 fun DaftarLombaScreen(viewModel: ViewDaftarLomba = viewModel()) {
     val daftarLomba by viewModel.lomba.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "Daftar Lomba",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 30.sp,
-                            textAlign = TextAlign.Center
-                        )
+    val success: String = viewModel.stateUI
+
+    if (success.equals("HTTP 401 Unauthorized")) {
+        AdminAccessDeniedBanner()
+    } else {
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Daftar Lomba",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 30.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C1C4A))
+                )
+            }
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .background(Color(0xFFF9F9F9))
+            ) {
+                items(daftarLomba) { lomba ->
+                    lomba?.let {
+                        LombaCard(it)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C1C4A))
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .background(Color(0xFFF9F9F9))
-        ) {
-            items(daftarLomba) { lomba ->
-                lomba?.let {
-                    LombaCard(it)
                 }
             }
         }
+
     }
+
 }
 
 
@@ -204,6 +214,41 @@ fun LombaCard(lomba: DaftarLomba) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0C1C4A))
             ) {
                 Text("Daftar Sekarang", color = Color.White)
+            }
+        }
+    }
+}
+@Composable
+fun AdminAccessDeniedBanner() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFEBEE), // Light red background
+            contentColor = Color(0xFFC62828) // Dark red text
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = "Admin Only",
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = "ADMIN ACCESS REQUIRED",
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Your account doesn't have administrator privileges",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
