@@ -21,7 +21,7 @@ object Retrofins {
         .build()
     val api : ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("http://192.168.1.7:3000/")
+            .baseUrl("http://192.168.1.14:3000/")
             .client(cookies)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

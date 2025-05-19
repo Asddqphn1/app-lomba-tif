@@ -34,14 +34,18 @@
             android:name=".component.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.LombaTIF">
+            android:theme="@style/Theme.LombaTIF"/>
 
+        <activity
+            android:name=".component.DashboardAdmin"
+            android:exported="true"
+            android:label="Dashboard Admin"
+            android:theme="@style/Theme.LombaTIF">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
     </application>
 
