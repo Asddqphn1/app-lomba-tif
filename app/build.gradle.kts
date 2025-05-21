@@ -69,4 +69,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     // Tambahkan di build.gradle (Module)
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.10.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
 }

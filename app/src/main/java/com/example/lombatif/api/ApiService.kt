@@ -5,6 +5,7 @@ import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponseReqRegister
+import com.example.lombatif.response.ResponseUserAdmin
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -20,6 +21,7 @@ interface ApiService {
 
     @POST("login")
     suspend fun  setLoginUser(@Body requestLogin: RequestLogin) : Response<ResponseLogin>
-    
 
+    @GET("users")
+    suspend fun  getUsers() : ResponseUserAdmin
 }
