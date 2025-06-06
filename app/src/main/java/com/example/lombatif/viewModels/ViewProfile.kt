@@ -7,36 +7,35 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lombatif.api.Retrofins
-import com.example.lombatif.models.get.DaftarLomba
+import com.example.lombatif.response.ResponseProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ViewDaftarLomba : ViewModel() {
-    private val _lomba = MutableStateFlow<List<DaftarLomba>>(emptyList())
-    val lomba: StateFlow<List<DaftarLomba>> = _lomba
+class ViewProfile : ViewModel() {
+    private val _profile = MutableStateFlow<ResponseProfile?>(null)
+    val profile: StateFlow<ResponseProfile?> = _profile
 
-    var isRefreshing by mutableStateOf(false)
-        private set
+
 
     var stateUI by mutableStateOf("")
 
     init {
-        fetchDaftarLomba()
+        fetchProfile()
     }
 
-    fun fetchDaftarLomba() {
+    private fun fetchProfile() {
         viewModelScope.launch {
-            isRefreshing = true
             try {
-                val response = Retrofins.api.getDaftarLomba()
-                _lomba.value = response.daftarLomba
-                stateUI = "Success"
+                val response = Retrofins.api.getProfile()
+                Log.d("Fetch Profile", "Response: $response")
+
+                _profile.value = response
             } catch (e: Exception) {
-                Log.e("DaftarLombaView", e.message.toString())
+                Log.e("Fetch Profile", e.message.toString())
                 stateUI = e.message.toString()
             }
-            isRefreshing = false
         }
+
     }
 }

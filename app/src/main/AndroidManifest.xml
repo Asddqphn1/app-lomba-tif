@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-
     <application
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,41 +13,37 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LombaTIF"
-        tools:targetApi="31">
-
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31" >
         <activity
             android:name=".component.DaftarLomba"
+            android:exported="false" />
+        <activity
+            android:name=".component.adminDashboard.UpdateJuri"
             android:exported="false"
-            android:label="@string/title_activity_daftar_lomba"
-            android:theme="@style/Theme.LombaTIF">
-
-        </activity>
+            android:label="@string/title_activity_update_juri"
+            android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.Registrasi"
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
-
         <activity
             android:name=".component.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.LombaTIF">
-
-        </activity>
-
-        <activity
-            android:name=".component.DashboardAdmin"
-            android:exported="true"
-            android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF">
+            android:theme="@style/Theme.LombaTIF" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
+        <activity
+            android:name=".component.adminDashboard.MainDashboard"
+            android:exported="true"
+            android:label="Dashboard Admin"
+            android:theme="@style/Theme.LombaTIF" />
     </application>
 
 </manifest>

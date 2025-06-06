@@ -1,5 +1,6 @@
 package com.example.lombatif.component
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -46,61 +47,113 @@ class DaftarLomba : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DaftarLombaScreen(viewModel: ViewDaftarLomba = viewModel()) {
+fun DaftarLombaScreen(
+    viewModel: ViewDaftarLomba = viewModel()
+) {
+    val context = LocalContext.current
     val daftarLomba by viewModel.lomba.collectAsState()
+    var selectedLomba by remember { mutableStateOf<DaftarLomba?>(null) }
+    val success = viewModel.stateUI
+    val userId = remember {
+        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            .getString("USER_ID", null)
+    }
 
-    val success: String = viewModel.stateUI
-
-    if (success.equals("HTTP 401 Unauthorized")) {
+    if (success == "HTTP 401 Unauthorized") {
         AdminAccessDeniedBanner()
     } else {
+        when {
+            selectedLomba != null -> {
+                val lomba = selectedLomba!!
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TextButton(onClick = { selectedLomba = null }) {
+                        Text("← Kembali ke daftar lomba", fontSize = 14.sp)
+                    }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (userId == null) {
+                        Text(
+                            "Gagal mendapatkan ID user. Silakan login ulang.",
+                            color = Color.Red,
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
                         Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier.fillMaxWidth(0.9f)
                         ) {
-                            Text(
-                                "Daftar Lomba",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 30.sp,
-                                textAlign = TextAlign.Center
+                            DaftarLombaForm(
+                                idUser = userId,
+                                idLomba = lomba.id ?: "",
+                                jumlahTim = lomba.jumlah_tim ?: 1,
+                                viewModel = viewModel()
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C1C4A))
-                )
+                    }
+                }
             }
-        ) { padding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .background(Color(0xFFF9F9F9))
-            ) {
-                items(daftarLomba) { lomba ->
-                    lomba?.let {
-                        LombaCard(it)
+
+            else -> {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "Daftar Lomba",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 30.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0C1C4A))
+                        )
+                    }
+                ) { padding ->
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(padding)
+                            .fillMaxSize()
+                            .background(Color(0xFFF9F9F9))
+                    ) {
+                        items(daftarLomba) { lomba ->
+                            lomba?.let {
+                                LombaCard(it) {
+                                    selectedLomba = it
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-
     }
-
 }
 
 
 @Composable
-fun LombaCard(lomba: DaftarLomba) {
+fun LombaCard(lomba: DaftarLomba, onDaftarClick: () -> Unit) {
     val context = LocalContext.current
 
     val formattedTanggal = lomba.tanggal?.let {
-        SimpleDateFormat("dd MMMM yyyy", Locale("id")).format(it)
+        try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(it)
+            val formatter = SimpleDateFormat("dd MMMM yyyy", Locale("id"))
+            formatter.format(date!!)
+        } catch (e: Exception) {
+            it
+        }
     } ?: "-"
 
     val batasWaktuFormatted = lomba.batasWaktu?.let {
@@ -108,7 +161,7 @@ fun LombaCard(lomba: DaftarLomba) {
             val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val date = parser.parse(it)
             val formatter = SimpleDateFormat("dd MMMM yyyy", Locale("id"))
-            "Pendaftaran ditutup pada ${formatter.format(date)}"
+            "Pendaftaran ditutup pada ${formatter.format(date!!)}"
         } catch (e: Exception) {
             "Pendaftaran ditutup: $it"
         }
@@ -138,7 +191,6 @@ fun LombaCard(lomba: DaftarLomba) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-
             Text(
                 text = lomba.nama ?: "-",
                 fontSize = 18.sp,
@@ -148,13 +200,11 @@ fun LombaCard(lomba: DaftarLomba) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-
             Text(
                 text = formattedTanggal,
                 fontSize = 14.sp,
                 color = Color.Gray
             )
-
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -170,7 +220,6 @@ fun LombaCard(lomba: DaftarLomba) {
                     color = Color.Gray
                 )
             }
-
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -189,7 +238,6 @@ fun LombaCard(lomba: DaftarLomba) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Text(
                 text = lomba.deskripsi ?: "-",
                 fontSize = 14.sp,
@@ -197,7 +245,6 @@ fun LombaCard(lomba: DaftarLomba) {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
 
             Text(
                 text = batasWaktuFormatted,
@@ -207,9 +254,8 @@ fun LombaCard(lomba: DaftarLomba) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-
             Button(
-                onClick = { /* TODO: Aksi daftar */ },
+                onClick = onDaftarClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0C1C4A))
             ) {
@@ -218,6 +264,7 @@ fun LombaCard(lomba: DaftarLomba) {
         }
     }
 }
+
 @Composable
 fun AdminAccessDeniedBanner() {
     Card(
@@ -225,8 +272,8 @@ fun AdminAccessDeniedBanner() {
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFEBEE), // Light red background
-            contentColor = Color(0xFFC62828) // Dark red text
+            containerColor = Color(0xFFFFEBEE),
+            contentColor = Color(0xFFC62828)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {

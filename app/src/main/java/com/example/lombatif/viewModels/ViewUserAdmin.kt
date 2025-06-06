@@ -32,4 +32,11 @@ class ViewUserAdmin : ViewModel() {
             }
         }
     }
+
+    fun updateUserInList(updatedUser: DaftarUsersAdmin) {
+        _users.value = _users.value.map {
+            if (it.id == updatedUser.id) updatedUser else it
+        }
+    }
+
 }
