@@ -1,11 +1,12 @@
 package com.example.lombatif.models.get
 
 import com.google.gson.annotations.SerializedName
-import java.io.Serializable
 
-data class DaftarUsersAdmin(
+data class JuriAdmin(
     @SerializedName("id") val id : String?,
     @SerializedName("nama") val nama : String?,
-    @SerializedName("email") val email : String?,
-    @SerializedName("role") val role : String?
-) : Serializable
+    @SerializedName("users") val users : User
+)
+data class User (
+    @SerializedName("email") val email: String?
+)

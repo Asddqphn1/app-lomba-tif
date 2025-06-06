@@ -25,7 +25,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -50,12 +49,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
+import com.example.lombatif.component.adminDashboard.MainDashboard
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewLogin
@@ -69,7 +68,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             LombaTIFTheme {
                 Login(viewmodel) {
-                    startActivity(Intent(this, DaftarLomba::class.java))
                     finish()
                 }
             }
@@ -88,11 +86,22 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
     LaunchedEffect(loginState.value) {
         when (val state = loginState.value) {
             is ViewLogin.LoginState.Success -> {
-                onLoginSuccess()
+                when (state.role) {
+                    "ADMIN" -> {
+                        context.startActivity(Intent(context, MainDashboard::class.java))
+                    }
+                    "USERS" -> {
+                        context.startActivity(Intent(context, DaftarLomba::class.java))
+                    }
+                    else -> {
+                        showDialog.value = true
+                    }
+                }
             }
             else -> {}
         }
     }
+
     Box (modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier
             .padding(16.dp)
@@ -190,7 +199,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
 
                     onClick = ({
                         if (email.isNotBlank() && password.isNotBlank()) {
-                            viewLogin.postLogin(email, password)
+                            viewLogin.postLogin(email, password, context)
                         }
                     }),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
