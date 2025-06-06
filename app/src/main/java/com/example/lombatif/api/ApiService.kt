@@ -3,6 +3,7 @@ package com.example.lombatif.api
 import com.example.lombatif.models.request.RequestLogin
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
+import com.example.lombatif.response.ResponseAuthMe
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponseReqRegister
 import com.example.lombatif.response.ResponseUserAdmin
@@ -14,6 +15,9 @@ import retrofit2.http.POST
 interface ApiService {
     @GET("daftarlomba")
     suspend fun getDaftarLomba() : ResponseDaftarLomba
+
+    @GET("auth/me")
+    suspend fun getAuthMe() : ResponseAuthMe
 
 
     @POST("register")

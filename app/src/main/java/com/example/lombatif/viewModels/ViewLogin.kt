@@ -18,6 +18,7 @@ class ViewLogin : ViewModel() {
     var loginState: State<LoginState> = _loginState
 
 
+
     fun resetState() {
         _loginState.value = LoginState.Idle
     }

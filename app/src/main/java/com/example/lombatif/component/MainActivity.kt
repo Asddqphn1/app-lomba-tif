@@ -58,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
+import com.example.lombatif.viewModels.ViewAuth
 import com.example.lombatif.viewModels.ViewLogin
 
 
@@ -68,27 +69,44 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LombaTIFTheme {
-                Login(viewmodel) {
-                    startActivity(Intent(this, DaftarLomba::class.java))
-                    finish()
-                }
+                Login(viewmodel)
+
             }
         }
     }
 }
 
 @Composable
-fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
+fun Login(viewLogin: ViewLogin = viewModel(), viewAuth: ViewAuth = viewModel(), onLoginSuccess: () -> Unit){
     val loginState = viewLogin.loginState
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("") }
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(loginState.value) {
         when (val state = loginState.value) {
             is ViewLogin.LoginState.Success -> {
-                onLoginSuccess()
+                // Dapatkan role setelah login berhasil
+                viewAuth.getAuthMe()
+                role = viewAuth.authMeState.value
+
+                when (role) {
+                    "PESERTA" -> {
+                        val intent = Intent(context, DashBoardPeserta::class.java)
+                        context.startActivity(intent)
+                    }
+                    "ADMIN" -> {
+                        val intent = Intent(context, DashboardAdmin::class.java)
+                        context.startActivity(intent)
+                    }
+                    else -> {
+                        // Default navigation jika role tidak dikenali
+                        val intent = Intent(context, DaftarLomba::class.java)
+                        context.startActivity(intent)
+                    }
+                }
             }
             else -> {}
         }
@@ -191,6 +209,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                     onClick = ({
                         if (email.isNotBlank() && password.isNotBlank()) {
                             viewLogin.postLogin(email, password)
+                           
                         }
                     }),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
