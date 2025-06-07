@@ -21,7 +21,7 @@ object Retrofins {
         .build()
     val api : ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://hono-api-lomba-tif-production.up.railway.app/")
+            .baseUrl("http://192.168.1.29:3000/")
             .client(cookies)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

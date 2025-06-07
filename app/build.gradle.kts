@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,5 +71,9 @@ dependencies {
     // Tambahkan di build.gradle (Module)
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.10.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.33.2-alpha")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation ("io.github.vanpra.compose-material-dialogs:core:0.8.1-rc")
+    implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.8.1-rc")
 
 }
