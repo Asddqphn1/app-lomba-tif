@@ -1,6 +1,7 @@
-package com.example.lombatif.response
+package com.example.lombatif.response.responsePeserta
 
 import com.example.lombatif.models.get.PesertaLombaInfo
+
 
 
 import com.google.gson.annotations.SerializedName

@@ -1,12 +1,13 @@
-package com.example.lombatif.viewModels
+package com.example.lombatif.viewModels.PesertaModels
 
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lombatif.api.Retrofins
-import com.example.lombatif.response.DataLombaUser
-import com.example.lombatif.response.SubmissionData
-import com.example.lombatif.response.SubmissionRequest
+import com.example.lombatif.response.responsePeserta.DataLombaUser
+import com.example.lombatif.response.responsePeserta.SubmissionData
+import com.example.lombatif.response.responsePeserta.SubmissionRequest
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -24,7 +25,8 @@ sealed interface LombaListState {
 sealed interface SubmissionCheckState {
     object Idle : SubmissionCheckState
     object Loading : SubmissionCheckState
-    data class Success(val submission: SubmissionData?) : SubmissionCheckState // Nullable jika belum ada submission
+    data class Success(val submission: SubmissionData?) :
+        SubmissionCheckState // Nullable jika belum ada submission
     data class Error(val message: String) : SubmissionCheckState
 }
 
@@ -84,11 +86,13 @@ class ViewSubmission : ViewModel() {
                     _submissionCheckState.value = SubmissionCheckState.Success(null)
                 } else {
                     // Untuk error HTTP lain (500, 401, dll), tampilkan sebagai error
-                    _submissionCheckState.value = SubmissionCheckState.Error("Error: ${e.message()}")
+                    _submissionCheckState.value =
+                        SubmissionCheckState.Error("Error: ${e.message()}")
                 }
             } catch (e: Exception) {
                 // Untuk error non-HTTP (misal: tidak ada internet)
-                _submissionCheckState.value = SubmissionCheckState.Error(e.message ?: "Terjadi kesalahan")
+                _submissionCheckState.value =
+                    SubmissionCheckState.Error(e.message ?: "Terjadi kesalahan")
             }
         }
     }

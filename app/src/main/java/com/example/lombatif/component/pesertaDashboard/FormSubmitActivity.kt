@@ -27,11 +27,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.example.lombatif.response.SubmissionData
+import com.example.lombatif.response.responsePeserta.SubmissionData
 import com.example.lombatif.ui.theme.LombaTIFTheme
-import com.example.lombatif.viewModels.ActionState
-import com.example.lombatif.viewModels.SubmissionCheckState
-import com.example.lombatif.viewModels.ViewSubmission
+import com.example.lombatif.viewModels.PesertaModels.ActionState
+import com.example.lombatif.viewModels.PesertaModels.SubmissionCheckState
+import com.example.lombatif.viewModels.PesertaModels.ViewSubmission
 
 
 class FormSubmitActivity : ComponentActivity() {
