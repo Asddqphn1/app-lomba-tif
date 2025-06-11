@@ -41,9 +41,19 @@ fun JuriAdminPage(
     var isError by remember { mutableStateOf(false) }
 
     var isRefreshing by remember { mutableStateOf(false) }
+    // State baru untuk loading awal
+    var isLoading by remember { mutableStateOf(true) }
 
     // Ambil daftar juri dari view model
     val juriList by viewJuriAdmin.juri.collectAsState()
+
+    // Efek untuk fetch data saat pertama kali komposabel ditampilkan
+    LaunchedEffect(Unit) {
+        isLoading = true
+        viewJuriAdmin.fetchJuriAdmin {
+            isLoading = false
+        }
+    }
 
     val filteredJuri = juriList.filter {
         it.nama?.contains(searchQuery, ignoreCase = true) == true ||
@@ -76,54 +86,65 @@ fun JuriAdminPage(
             singleLine = true
         )
 
-        SwipeRefresh(
-            state = swipeRefreshState,
-            onRefresh = {
-                isRefreshing = true
-                viewJuriAdmin.fetchJuriAdmin {
-                    isRefreshing = false
-                }
+        // Tampilkan loading indicator atau daftar juri
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-        ) {
-            LazyColumn {
-                items(filteredJuri) { user ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.AccountCircle,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(user.nama ?: "Unknown", fontWeight = FontWeight.Medium)
-                                Text(user.users?.email ?: "No email", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-
-                        Row {
-                            IconButton(onClick = { onUpdate(user) }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit")
-                            }
-                            IconButton(onClick = {
-                                juriToDelete = user
-                                showDialog = true
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                            }
-                        }
+        } else {
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    isRefreshing = true
+                    viewJuriAdmin.fetchJuriAdmin {
+                        isRefreshing = false
                     }
-                    Divider()
+                }
+            ) {
+                LazyColumn {
+                    items(filteredJuri) { user ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.AccountCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(user.nama ?: "Unknown", fontWeight = FontWeight.Medium)
+                                    Text(user.users?.email ?: "No email", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+
+                            Row {
+                                IconButton(onClick = { onUpdate(user) }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                }
+                                IconButton(onClick = {
+                                    juriToDelete = user
+                                    showDialog = true
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                                }
+                            }
+                        }
+                        Divider()
+                    }
                 }
             }
         }
     }
+
 
     // Dialog konfirmasi dan hasil hapus tetap sama
     if (showDialog && juriToDelete != null) {
@@ -136,6 +157,7 @@ fun JuriAdminPage(
                     showDialog = false
                     val id = juriToDelete!!.id
                     if (id != null) {
+                        // Tampilkan loading di sini jika diperlukan
                         viewHapusJuri.hapusJuriById(
                             id = id,
                             onSuccess = {
@@ -202,5 +224,3 @@ fun JuriAdminPage(
         )
     }
 }
-
-

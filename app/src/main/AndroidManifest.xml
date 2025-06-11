@@ -19,23 +19,33 @@
         <activity
             android:name=".component.juriDashboard.juriDashboard"
             android:exported="false"
-            android:label="@string/title_activity_juri_dashboard"
+            android:label="@string/title_activity_juri_dashboard"/>
+        <activity
+            android:name=".component.adminDashboard.PesertaAdminActivity"
+            android:exported="false"
+            android:label="@string/title_activity_peserta_admin"
             android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.DaftarLomba"
             android:exported="false"
             android:label="@string/title_activity_daftar_lomba"
-            android:theme="@style/Theme.LombaTIF"></activity>
+            android:theme="@style/Theme.LombaTIF"/>
         <activity
             android:name=".component.Registrasi"
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
         <activity
-            android:name=".component.DashBoardPeserta"
+            android:name=".component.pesertaDashboard.DashBoardPeserta"
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
+
+
+
+        <activity android:name=".component.adminDashboard.UpdateJuri" />
+
+
         <activity
             android:name=".component.MainActivity"
             android:exported="true"
@@ -51,7 +61,7 @@
             android:name=".component.adminDashboard.MainDashboard"
             android:exported="true"
             android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF"></activity>
+            android:theme="@style/Theme.LombaTIF"/>
     </application>
 
 </manifest>

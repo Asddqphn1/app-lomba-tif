@@ -1,7 +1,7 @@
 package com.example.lombatif.models.get
 
 import com.google.gson.annotations.SerializedName
-import java.util.Date
+
 
 data class DaftarLomba(
     @SerializedName("id") val id : String?,

@@ -15,9 +15,10 @@ import androidx.compose.runtime.Composable
 fun BottomNavBar(selected: Int, onItemSelected: (Int) -> Unit) {
     val items = listOf(
         Pair("Dashboard", Icons.Default.Home),
-        Pair("User", Icons.Default.Person),
+        Pair("Lomba", Icons.Default.DateRange),
+        Pair("Peserta", Icons.Default.Person),
         Pair("Juri", Icons.Default.Face),
-        Pair("Lomba", Icons.Default.DateRange)
+        Pair("User", Icons.Default.Person),
     )
 
     NavigationBar {

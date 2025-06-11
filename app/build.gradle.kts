@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.lombatif"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.webkit)
+    implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,6 +70,9 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation ("androidx.compose.material3:material3:1.2.0") // atau versi terbaru
+    implementation ("com.patrykandpatrick.vico:compose-m3:1.14.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation ("com.patrykandpatrick.vico:core:1.14.0")
     // Tambahkan di build.gradle (Module)
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.10.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -76,5 +80,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation ("io.github.vanpra.compose-material-dialogs:core:0.8.1-rc")
     implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.8.1-rc")
+    implementation("androidx.compose.foundation:foundation:1.6.0")
 
 }

@@ -1,21 +1,28 @@
 package com.example.lombatif.api
 
+import com.example.lombatif.models.get.DaftarLombaUser
+import com.example.lombatif.models.get.DaftarSubmitUser
 import com.example.lombatif.models.request.RequestDaftarLombaPeserta
 import com.example.lombatif.models.request.RequestLogin
 import com.example.lombatif.models.request.RequestLomba
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.models.request.RequestUpdateJuri
+import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
 import com.example.lombatif.response.ResponseJuriProfile
 import com.example.lombatif.response.ResponseLogin
+import com.example.lombatif.response.ResponsePesertaAdmin
+import com.example.lombatif.response.PendaftaranRequest
+import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
 import com.example.lombatif.response.ResponseSubmission
 import com.example.lombatif.response.ResponseTambahLomba
 import com.example.lombatif.response.ResponseUpdateJuri
 import com.example.lombatif.response.ResponseUserAdmin
+import com.example.lombatif.response.StatusResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -23,10 +30,23 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
     @GET("daftarlomba")
     suspend fun getDaftarLomba() : ResponseDaftarLomba
+
+    // Endpoint untuk mendapatkan detail satu lomba
+    @GET("daftarlomba/{lombaId}")
+    suspend fun getLombaDetail(@Path("lombaId") lombaId: String): ResponseLombaDetail
+
+    // Endpoint untuk mengirim data pendaftaran peserta
+    @POST("daftarpeserta/{userId}/{lombaId}")
+    suspend fun postPendaftaran(
+        @Path("userId") userId: String,
+        @Path("lombaId") lombaId: String,
+        @Body request: PendaftaranRequest
+    ): StatusResponse
 
     @POST("register")
     suspend fun setRegisterUser(@Body requestRegister: RequestRegister) : Response<ResponseReqRegister>
@@ -78,5 +98,23 @@ interface ApiService {
         @Path("idlomba") idLomba: String,
         @Body body: RequestDaftarLombaPeserta
     ): Response<ResponseDaftarLombaPeserta>
+    
+    @GET("daftarpeserta")
+    suspend fun fetchPeserta(
+        @Query("jenis") jenis: String? = null
+    ): Response<ResponsePesertaAdmin>
+
+    @GET("daftarpeserta/anggotatim/{id}")
+    suspend fun fetchAnggotaTim(@Path("id") id: String): Response<ResponseAnggotaTim>
+    
+    @GET("daftarlomba/userlomba/{userId}")
+    suspend fun getDashboardData(
+        @Path("userId") userId: String
+    ): Response<DaftarLombaUser> // <-- Langsung gunakan kelas yang strukturnya benar
+
+    @GET("submit/users/{userId}") // <-- Asumsi endpoint, harap disesuaikan
+    suspend fun getSubmissions(
+        @Path("userId") userId: String
+    ): Response<DaftarSubmitUser>
 
 }
