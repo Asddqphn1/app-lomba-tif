@@ -56,6 +56,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
 import com.example.lombatif.component.adminDashboard.MainDashboard
+import com.example.lombatif.component.pesertaDashboard.DashBoardPeserta
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewLogin
@@ -87,6 +88,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
     var password by remember { mutableStateOf("") }
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val userId = profileState?.profile?.id // Ambil ID penggun
 
     // Reset state saat pertama kali masuk ke layar login
     LaunchedEffect(Unit) {
@@ -122,11 +124,17 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     onLoginSuccess()
                 }
                 "USERS" -> {
-                    context.startActivity(Intent(context, DaftarLomba::class.java))
+                    val intent = Intent(context, DashBoardPeserta::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    }
+                    context.startActivity(intent)
                     onLoginSuccess()
                 }
                 "PESERTA" -> {
-                    context.startActivity(Intent(context, DashBoardPeserta::class.java))
+                    val intent = Intent(context, DashBoardPeserta::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    }
+                    context.startActivity(intent)
                     onLoginSuccess()
                 }
                 else -> {
@@ -349,7 +357,6 @@ fun ErrorDialog(
         )
     }
 }
-
 
 
 
