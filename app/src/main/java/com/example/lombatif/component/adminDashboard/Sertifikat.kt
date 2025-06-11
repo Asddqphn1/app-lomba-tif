@@ -13,9 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Link
@@ -132,10 +131,10 @@ fun LombaScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp)
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredList, key = { it.id!! }) { lomba ->
                         LombaItemCard(
@@ -359,7 +358,7 @@ fun LombaItemCard(
                 val jenisLombaText = if (isIndividu) {
                     "Individu"
                 } else {
-                    "${lomba.jenisLomba ?: ""} - ${lomba.jumlah_tim ?: 0} Tim"
+                    "${lomba.jenisLomba ?: ""} - ${lomba.jumlah_tim ?: 0} Anggota"
                 }
                 val jenisLombaIcon = if (isIndividu) {
                     Icons.Default.Person
