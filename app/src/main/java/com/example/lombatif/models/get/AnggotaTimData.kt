@@ -3,11 +3,11 @@ package com.example.lombatif.models.get
 data class AnggotaTimData(
     val nama: String,
     val id: String,
-    val pesertalomba: List<PesertaLombaData>,
+    val pesertalomba: List<PesertaLombaDataa>,
     val anggotaTim: List<AnggotaData>
 )
 
-data class PesertaLombaData(
+data class PesertaLombaDataa(
     val lomba: LombaNama
 )
 
