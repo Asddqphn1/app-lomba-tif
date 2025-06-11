@@ -56,6 +56,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
 import com.example.lombatif.component.adminDashboard.MainDashboard
+import com.example.lombatif.component.juriDashboard.juriDashboard
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewLogin
@@ -128,6 +129,11 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                 "PESERTA" -> {
                     context.startActivity(Intent(context, DashBoardPeserta::class.java))
                     onLoginSuccess()
+                }
+                "JURI" -> {
+                    // Mengarahkan ke juriDashboard Activity
+                    context.startActivity(Intent(context, juriDashboard::class.java))
+                    onLoginSuccess() // Menutup activity login setelah berhasil
                 }
                 else -> {
                     showDialog.value = true

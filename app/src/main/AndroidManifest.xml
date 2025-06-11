@@ -5,9 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-
     <application
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,15 +14,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LombaTIF"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+        <activity
+            android:name=".component.juriDashboard.juriDashboard"
+            android:exported="false"
+            android:label="@string/title_activity_juri_dashboard"
+            android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.DaftarLomba"
             android:exported="false"
             android:label="@string/title_activity_daftar_lomba"
-            android:theme="@style/Theme.LombaTIF">
-
-        </activity>
+            android:theme="@style/Theme.LombaTIF"></activity>
         <activity
             android:name=".component.Registrasi"
             android:exported="false"
@@ -35,7 +36,6 @@
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
-
         <activity
             android:name=".component.MainActivity"
             android:exported="true"
@@ -46,17 +46,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-
         <activity
             android:name=".component.adminDashboard.MainDashboard"
             android:exported="true"
             android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF">
-
-
-        </activity>
+            android:theme="@style/Theme.LombaTIF"></activity>
     </application>
 
 </manifest>
