@@ -7,6 +7,7 @@ import com.example.lombatif.models.request.RequestLogin
 import com.example.lombatif.models.request.RequestLomba
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
+import com.example.lombatif.models.request.RequestSertifikat
 import com.example.lombatif.models.request.RequestUpdateJuri
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
@@ -14,6 +15,7 @@ import com.example.lombatif.response.ResponseJuriAdmin
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponsePesertaAdmin
 import com.example.lombatif.response.PendaftaranRequest
+import com.example.lombatif.response.ResponseKirimSertifikat
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
@@ -105,5 +107,11 @@ interface ApiService {
     suspend fun getSubmissions(
         @Path("userId") userId: String
     ): Response<DaftarSubmitUser>
+
+    @POST("sertifikat/{idLomba}")
+    suspend fun postSertifikat(
+        @Path("idLomba") id: String,
+        @Body sertifikat: RequestSertifikat
+    ): Response<ResponseKirimSertifikat>
 
 }

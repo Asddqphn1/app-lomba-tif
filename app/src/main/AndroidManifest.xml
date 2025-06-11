@@ -17,6 +17,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".component.adminDashboard.Sertifikat"
+            android:exported="false"
+            android:label="@string/title_activity_sertifikat"
+            android:theme="@style/Theme.LombaTIF" />
+        <activity
             android:name=".component.adminDashboard.PesertaAdminActivity"
             android:exported="false"
             android:label="@string/title_activity_peserta_admin"
@@ -25,9 +30,7 @@
             android:name=".component.DaftarLomba"
             android:exported="false"
             android:label="@string/title_activity_daftar_lomba"
-            android:theme="@style/Theme.LombaTIF">
-
-        </activity>
+            android:theme="@style/Theme.LombaTIF"></activity>
         <activity
             android:name=".component.Registrasi"
             android:exported="false"
@@ -38,9 +41,7 @@
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
-
         <activity android:name=".component.adminDashboard.UpdateJuri" />
-
         <activity
             android:name=".component.MainActivity"
             android:exported="true"
@@ -56,7 +57,7 @@
             android:name=".component.adminDashboard.MainDashboard"
             android:exported="true"
             android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF"></activity>
+            android:theme="@style/Theme.LombaTIF" />
     </application>
 
 </manifest>

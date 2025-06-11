@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -127,9 +126,6 @@ fun JuriAdminPage(
                             }
 
                             Row {
-                                IconButton(onClick = { onUpdate(user) }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                                }
                                 IconButton(onClick = {
                                     juriToDelete = user
                                     showDialog = true

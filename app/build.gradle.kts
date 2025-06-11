@@ -81,5 +81,6 @@ dependencies {
     implementation ("io.github.vanpra.compose-material-dialogs:core:0.8.1-rc")
     implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.8.1-rc")
     implementation("androidx.compose.foundation:foundation:1.6.0")
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
 
 }
