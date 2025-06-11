@@ -68,6 +68,7 @@ dependencies {
     implementation ("androidx.compose.runtime:runtime-livedata:1.6.0")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation ("androidx.compose.material3:material3:1.2.0") // atau versi terbaru
     // Tambahkan di build.gradle (Module)
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.10.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")

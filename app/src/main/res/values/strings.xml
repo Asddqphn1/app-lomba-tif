@@ -2,5 +2,5 @@
     <string name="app_name">LombaTIF</string>
     <string name="title_activity_registrasi">Registrasi</string>
     <string name="title_activity_daftar_lomba">DaftarLomba</string>
-    <string name="title_activity_update_juri">UpdateJuri</string>
+    <string name="title_activity_juri_dashbpard_section">juriDashbpardSection</string>
 </resources>

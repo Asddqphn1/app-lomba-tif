@@ -7,14 +7,35 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,9 +55,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.R
 import com.example.lombatif.component.adminDashboard.MainDashboard
+
 import com.example.lombatif.ui.theme.LombaTIFTheme
-import com.example.lombatif.viewModels.LoginState // ✅ import ini wajib
 import com.example.lombatif.viewModels.ViewLogin
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +76,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
+fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
     val loginState = viewLogin.loginState
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -63,7 +85,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
 
     LaunchedEffect(loginState.value) {
         when (val state = loginState.value) {
-            is LoginState.Success -> {
+            is ViewLogin.LoginState.Success -> {
                 when (state.role) {
                     "ADMIN" -> {
                         context.startActivity(Intent(context, MainDashboard::class.java))
@@ -80,14 +102,14 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Box (modifier = Modifier.fillMaxSize()) {
+        Column (modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+
             Spacer(modifier = Modifier.height(60.dp))
+
             Image(
                 painter = painterResource(id = R.drawable.logotiflomba),
                 contentDescription = "logoAPP",
@@ -95,6 +117,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
+
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -106,7 +129,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Competition Management Platform",
+                text = "Competition Management Platfrom",
                 fontSize = 15.sp,
                 color = Color.DarkGray,
                 fontWeight = FontWeight.Medium
@@ -132,6 +155,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // EMAIL
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -147,8 +171,10 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                         focusedPlaceholderColor = Color(0xFF000000)
                     )
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // PASSWORD
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -158,21 +184,24 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF1C3ED3),
                         focusedTextColor = Color.Black,
                         focusedPlaceholderColor = Color(0xFF000000)
                     )
                 )
+
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Button(
-                    onClick = {
+
+                    onClick = ({
                         if (email.isNotBlank() && password.isNotBlank()) {
                             viewLogin.postLogin(email, password, context)
                         }
-                    },
+                    }),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -186,13 +215,19 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                         color = Color.White
                     )
                 }
-
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Text(
+
                     buildAnnotatedString {
                         append("Don't have an account yet? ")
-                        withStyle(style = SpanStyle(color = Color.Blue, fontWeight = FontWeight.Bold)) {
+
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Blue,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
                             append("Sign Up")
                         }
                     },
@@ -204,13 +239,11 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                         context.startActivity(intent)
                     }
                 )
-
                 when (val state = loginState.value) {
-                    is LoginState.Loading -> {
+                    is ViewLogin.LoginState.Loading -> {
                         CircularProgressIndicator()
                     }
-
-                    is LoginState.Error -> {
+                    is ViewLogin.LoginState.Error -> {
                         LaunchedEffect(state) {
                             showDialog.value = true
                         }
@@ -219,13 +252,13 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                             showDialog = showDialog,
                             onDismiss = {
                                 showDialog.value = false
-                                viewLogin.resetState()
+                                viewLogin.resetState() // Tambahkan fungsi ini di ViewModel
                             }
                         )
                     }
-
                     else -> {}
                 }
+
             }
         }
     }
@@ -241,15 +274,26 @@ fun ErrorDialog(
         AlertDialog(
             onDismissRequest = onDismiss,
             confirmButton = {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
                     Text("OK")
                 }
             },
             title = {
-                Text(text = "Login Gagal", color = Color.White)
+                Text(
+                    text = "Login Gagal",
+                    color = Color.White
+                )
             },
             text = {
-                Text(text = message, color = Color.White)
+                Text(
+                    text = message,
+                    color = Color.White
+                )
             },
             containerColor = Color(0xFFD32F2F),
             titleContentColor = Color.White,
@@ -257,3 +301,9 @@ fun ErrorDialog(
         )
     }
 }
+
+
+
+
+
+

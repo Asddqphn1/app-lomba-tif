@@ -121,21 +121,21 @@ class ViewLogin : ViewModel() {
             null
         }
     }
+    sealed class LoginState {
+        object Idle : LoginState()
+        object Loading : LoginState()
+        data class Success(
+            val userData: DataUser,
+            val token: String,
+            val role: String,
+            val id: String
+        ) : LoginState()
+        data class Error(val message: String) : LoginState()
+    }
 
     fun saveUserIdToPreferences(context: Context, id: String) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("USER_ID", id).apply()
     }
 
-}
-sealed class LoginState {
-    object Idle : LoginState()
-    object Loading : LoginState()
-    data class Success(
-        val userData: DataUser,
-        val token: String,
-        val role: String,
-        val id: String
-    ) : LoginState()
-    data class Error(val message: String) : LoginState()
 }
