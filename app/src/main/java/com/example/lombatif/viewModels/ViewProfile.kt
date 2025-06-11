@@ -13,29 +13,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ViewProfile : ViewModel() {
+
     private val _profile = MutableStateFlow<ResponseProfile?>(null)
     val profile: StateFlow<ResponseProfile?> = _profile
 
-
-
     var stateUI by mutableStateOf("")
 
-    init {
-        fetchProfile()
-    }
-
-     fun fetchProfile() {
+    fun fetchProfile() {
         viewModelScope.launch {
             try {
                 val response = Retrofins.api.getProfile()
                 Log.d("Fetch Profile", "Response: $response")
-
                 _profile.value = response
+                stateUI = ""
             } catch (e: Exception) {
                 Log.e("Fetch Profile", e.message.toString())
                 stateUI = e.message.toString()
             }
         }
+    }
 
+    fun reset() {
+        _profile.value = null
+        stateUI = ""
     }
 }
