@@ -8,10 +8,12 @@ import com.example.lombatif.models.request.RequestLomba
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.models.request.RequestUpdateJuri
-import com.example.lombatif.response.PendaftaranRequest
+import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
 import com.example.lombatif.response.ResponseLogin
+import com.example.lombatif.response.ResponsePesertaAdmin
+import com.example.lombatif.response.PendaftaranRequest
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
@@ -26,6 +28,7 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
     @GET("daftarlomba")
@@ -84,8 +87,15 @@ interface ApiService {
         @Path("idlomba") idLomba: String,
         @Body body: RequestDaftarLombaPeserta
     ): Response<ResponseDaftarLombaPeserta>
+    
+    @GET("daftarpeserta")
+    suspend fun fetchPeserta(
+        @Query("jenis") jenis: String? = null
+    ): Response<ResponsePesertaAdmin>
 
-    // BENAR
+    @GET("daftarpeserta/anggotatim/{id}")
+    suspend fun fetchAnggotaTim(@Path("id") id: String): Response<ResponseAnggotaTim>
+    
     @GET("daftarlomba/userlomba/{userId}")
     suspend fun getDashboardData(
         @Path("userId") userId: String
