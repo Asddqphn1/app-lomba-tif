@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +60,8 @@ import com.example.lombatif.component.adminDashboard.MainDashboard
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewLogin
 
+import com.example.lombatif.viewModels.ViewProfile
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,38 +79,68 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
+fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
     val loginState = viewLogin.loginState
+    val viewProfile: ViewProfile = viewModel()
+    val profileState by viewProfile.profile.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    // Track if we've fetched the profile
+    var hasFetchedProfile by remember { mutableStateOf(false) }
+
     LaunchedEffect(loginState.value) {
         when (val state = loginState.value) {
             is ViewLogin.LoginState.Success -> {
-                when (state.role) {
-                    "ADMIN" -> {
-                        context.startActivity(Intent(context, MainDashboard::class.java))
-                    }
-                    "USERS" -> {
-                        context.startActivity(Intent(context, DaftarLomba::class.java))
-                    }
-                    else -> {
-                        showDialog.value = true
-                    }
+                // Fetch profile only once after successful login
+                if (!hasFetchedProfile) {
+                    viewProfile.fetchProfile()
+                    hasFetchedProfile = true
                 }
+            }
+            is ViewLogin.LoginState.Error -> {
+                showDialog.value = true
             }
             else -> {}
         }
     }
 
-    Box (modifier = Modifier.fillMaxSize()) {
-        Column (modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally) {
+    // Handle profile state changes
+    LaunchedEffect(profileState) {
+        if (profileState != null && hasFetchedProfile) {
+            val role = profileState?.profile?.role ?: ""
+            when (role) {
+                "ADMIN" -> {
+                    context.startActivity(Intent(context, MainDashboard::class.java))
+                    onLoginSuccess()
+                }
+                "USERS" -> {
+                    context.startActivity(Intent(context, DaftarLomba::class.java))
+                    onLoginSuccess()
+                }
+                "PESERTA" -> {
+                    context.startActivity(Intent(context, DashBoardPeserta::class.java))
+                    onLoginSuccess()
+                }
 
+                else -> {
+                    showDialog.value = true
+                    viewLogin.resetState()
+                    hasFetchedProfile = false
+                }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.height(60.dp))
 
             Image(
@@ -117,7 +150,6 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -129,7 +161,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Competition Management Platfrom",
+                text = "Competition Management Platform",
                 fontSize = 15.sp,
                 color = Color.DarkGray,
                 fontWeight = FontWeight.Medium
@@ -184,8 +216,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                     },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF1C3ED3),
                         focusedTextColor = Color.Black,
@@ -196,12 +227,11 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Button(
-
-                    onClick = ({
+                    onClick = {
                         if (email.isNotBlank() && password.isNotBlank()) {
                             viewLogin.postLogin(email, password, context)
                         }
-                    }),
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C3ED3)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,10 +248,8 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Text(
-
                     buildAnnotatedString {
                         append("Don't have an account yet? ")
-
                         withStyle(
                             style = SpanStyle(
                                 color = Color.Blue,
@@ -239,6 +267,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                         context.startActivity(intent)
                     }
                 )
+
                 when (val state = loginState.value) {
                     is ViewLogin.LoginState.Loading -> {
                         CircularProgressIndicator()
@@ -252,18 +281,31 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit){
                             showDialog = showDialog,
                             onDismiss = {
                                 showDialog.value = false
-                                viewLogin.resetState() // Tambahkan fungsi ini di ViewModel
+                                viewLogin.resetState()
                             }
                         )
                     }
                     else -> {}
                 }
 
+                // Tampilkan error dari ViewProfile jika ada
+                if (viewProfile.stateUI.isNotEmpty()) {
+                    LaunchedEffect(viewProfile.stateUI) {
+                        showDialog.value = true
+                    }
+                    ErrorDialog(
+                        message = viewProfile.stateUI,
+                        showDialog = showDialog,
+                        onDismiss = {
+                            showDialog.value = false
+                            viewProfile.stateUI = "" // Reset stateUI
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 @Composable
 fun ErrorDialog(
     message: String,

@@ -26,10 +26,6 @@ interface ApiService {
     @GET("daftarlomba")
     suspend fun getDaftarLomba() : ResponseDaftarLomba
 
-    @GET("auth/me")
-    suspend fun getAuthMe() : ResponseAuthMe
-
-
     @POST("register")
     suspend fun setRegisterUser(@Body requestRegister: RequestRegister) : Response<ResponseReqRegister>
 

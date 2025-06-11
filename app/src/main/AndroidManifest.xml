@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 
     <application
@@ -29,25 +30,31 @@
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
+        <activity
+            android:name=".component.DashBoardPeserta"
+            android:exported="false"
+            android:label="@string/title_activity_registrasi"
+            android:theme="@style/Theme.LombaTIF" />
 
         <activity
             android:name=".component.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.LombaTIF">
-
-        </activity>
-
-        <activity
-            android:name=".component.DashboardAdmin"
-            android:exported="true"
-            android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".component.adminDashboard.MainDashboard"
+            android:exported="true"
+            android:label="Dashboard Admin"
+            android:theme="@style/Theme.LombaTIF">
+
 
         </activity>
     </application>

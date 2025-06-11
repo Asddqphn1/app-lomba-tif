@@ -24,7 +24,7 @@ class ViewProfile : ViewModel() {
         fetchProfile()
     }
 
-    private fun fetchProfile() {
+     fun fetchProfile() {
         viewModelScope.launch {
             try {
                 val response = Retrofins.api.getProfile()
