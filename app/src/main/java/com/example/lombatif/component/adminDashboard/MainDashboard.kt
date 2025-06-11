@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +46,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lombatif.models.get.DaftarUsersAdmin
+import com.example.lombatif.models.get.PesertaAdmin
 import com.example.lombatif.ui.theme.LombaTIFTheme
+import com.example.lombatif.viewModels.ViewAnggotaTim
 import com.example.lombatif.viewModels.ViewDaftarLomba
 import com.example.lombatif.viewModels.ViewJuriAdmin
+import com.example.lombatif.viewModels.ViewPesertaAdmin
 import com.example.lombatif.viewModels.ViewUserAdmin
 
 class MainDashboard : ComponentActivity() {
@@ -64,7 +67,8 @@ class MainDashboard : ComponentActivity() {
                     DashboardScreen(
                         viewModel,
                         viewJuriAdmin = ViewJuriAdmin(),
-                        viewDaftarLomba = ViewDaftarLomba())
+                        viewDaftarLomba = ViewDaftarLomba()
+                    )
                 }
             }
         }
@@ -76,20 +80,33 @@ class MainDashboard : ComponentActivity() {
 fun DashboardScreen(
     viewModel: ViewUserAdmin,
     viewJuriAdmin: ViewJuriAdmin,
-    viewDaftarLomba: ViewDaftarLomba) {
+    viewDaftarLomba: ViewDaftarLomba
+) {
     var selectedTab by remember { mutableStateOf(0) }
     var showProfile by remember { mutableStateOf(false) }
+
     val user by viewModel.user.collectAsState()
     val juri by viewJuriAdmin.juri.collectAsState()
     val lomba by viewDaftarLomba.lomba.collectAsState()
 
+    val viewPesertaAdmin = remember { ViewPesertaAdmin() }
+    val anggotaViewModel = remember { ViewAnggotaTim() }
+
+    var selectedPeserta by remember { mutableStateOf<PesertaAdmin?>(null) }
+
+    val pesertaCount = viewPesertaAdmin.pesertaList.size
+    val juriCount = juri.size
+
+    LaunchedEffect(Unit) {
+        viewPesertaAdmin.loadPeserta()
+        viewJuriAdmin.fetchJuriAdmin()
+    }
+
     Scaffold(
-        topBar = {
-            TopBar(onProfileClick = { showProfile = true })
-        },
+        topBar = { TopBar(onProfileClick = { showProfile = true }) },
         bottomBar = {
             if (!showProfile) {
-                BottomNavBar (selectedTab) { selectedTab = it }
+                BottomNavBar(selectedTab) { selectedTab = it }
             }
         }
     ) { innerPadding ->
@@ -100,35 +117,61 @@ fun DashboardScreen(
                 .background(Color.White)
         ) {
             if (showProfile) {
-                ProfileScreen(onBack = { showProfile = false }, onLogout = {})
+                ProfileScreen(
+                    onBack = { showProfile = false },
+                    onLogout = {}
+                )
             } else {
                 if (selectedTab == 0) {
-                    StatsSection(user.size, lomba.size)
+                    StatsSection(
+                        userCount = user.size,
+                        pesertaCount = pesertaCount,
+                        juriCount = juriCount,
+                        lombaCount = lomba.size
+                    )
                 }
+
                 when (selectedTab) {
                     0 -> PlaceholderContent("")
-                    1 -> UserAdmin(
-                        onHapusBerhasil = { viewModel.fetchDaftarUser() },
-                        onUpdate = { updatedUser -> println("Edit user: ${updatedUser.id}") },
-                        onDelete = { deletedUser ->
-                            // Di sini kamu bisa langsung panggil hapus user dari ViewModel,
-                            // tapi kalau sudah ada di UserAdmin, ini bisa kosong
-                            println("Hapus user: ${deletedUser.id}")
-                        }
+                    1 -> LombaAdmin(
+                        lomba = lomba,
+                        onHapusLomba = { },
+                        onTambahLombaBaru = { },
+                        isRefreshing = false,
+                        onRefreshLomba = { viewDaftarLomba.fetchDaftarLomba() }
                     )
+                    2 -> {
+                        PesertaListScreen(
+                            pesertaList = viewPesertaAdmin.pesertaList,
+                            isLoading = viewPesertaAdmin.isLoading,
+                            errorMessage = viewPesertaAdmin.errorMessage,
+                            onLihatAnggota = { peserta ->
+                                selectedPeserta = peserta
+                                anggotaViewModel.loadAnggotaTim(peserta.id)
+                            },
+                            anggotaViewModel = anggotaViewModel
+                        )
 
-
-                        2 -> JuriAdminPage(
+                        selectedPeserta?.let { peserta ->
+                            AnggotaTimDialog(
+                                namaPeserta = peserta.nama,
+                                anggotaTim = anggotaViewModel.anggota,
+                                isLoading = anggotaViewModel.isLoading,
+                                onDismiss = {
+                                    selectedPeserta = null
+                                    anggotaViewModel.resetState()
+                                }
+                            )
+                        }
+                    }
+                    3 -> JuriAdminPage(
                         onUpdate = { selectedUser -> println("Edit user: ${selectedUser.nama}") },
                         onDelete = { selectedUser -> println("Hapus user: ${selectedUser.nama}") }
                     )
-                    3 -> LombaAdmin(
-                        lomba = lomba,
-                        onHapusLomba = {  },
-                        onTambahLombaBaru = { },
-                        isRefreshing = false,
-                        onRefreshLomba = { viewDaftarLomba.fetchDaftarLomba()
-                        }
+                    4 -> UserAdmin(
+                        onHapusBerhasil = { viewModel.fetchDaftarUser() },
+                        onUpdate = { updatedUser -> println("Edit user: ${updatedUser.id}") },
+                        onDelete = { deletedUser -> println("Hapus user: ${deletedUser.id}") }
                     )
                 }
             }
@@ -152,11 +195,8 @@ fun TopBar(onProfileClick: () -> Unit) {
     }
 }
 
-
-
-
 @Composable
-fun StatsSection(userCount: Int, lombaCount: Int) {
+fun StatsSection(userCount: Int, pesertaCount: Int, juriCount: Int, lombaCount: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,8 +208,8 @@ fun StatsSection(userCount: Int, lombaCount: Int) {
 
     val cards = listOf(
         StatCardData("Total User", userCount.toString(), Color(0xFFD8E9FF), Icons.Default.Face),
-        StatCardData("Total Peserta", "0", Color(0xFFDFF6E3), Icons.Default.Person),
-        StatCardData("Total Juri", "0", Color(0xFFE8DFFF), Icons.Default.Check),
+        StatCardData("Total Peserta", pesertaCount.toString(), Color(0xFFDFF6E3), Icons.Default.Person),
+        StatCardData("Total Juri", juriCount.toString(), Color(0xFFE8DFFF), Icons.Default.Check),
         StatCardData("Total Lomba", lombaCount.toString(), Color(0xFFFFF4D8), Icons.Default.ThumbUp)
     )
 
