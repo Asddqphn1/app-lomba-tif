@@ -11,12 +11,14 @@ import com.example.lombatif.models.request.RequestUpdateJuri
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
+import com.example.lombatif.response.ResponseJuriProfile
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponsePesertaAdmin
 import com.example.lombatif.response.PendaftaranRequest
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
+import com.example.lombatif.response.ResponseSubmission
 import com.example.lombatif.response.ResponseTambahLomba
 import com.example.lombatif.response.ResponseUpdateJuri
 import com.example.lombatif.response.ResponseUserAdmin
@@ -60,6 +62,15 @@ interface ApiService {
 
     @GET("auth/me")
     suspend fun getProfile() : ResponseProfile
+
+    // Ganti ResponseJuriProfile dengan nama data class yang sesuai untuk response ini
+    @GET("juri/{idUser}")
+    suspend fun getJuriProfile(@Path("idUser") idUser: String): ResponseJuriProfile
+
+    // Ganti ResponseSubmission dengan nama data class yang sesuai
+// Ini akan berisi list dari data submission
+    @GET("penilaian/{idJuri}")
+    suspend fun getSubmissionsForJuri(@Path("idJuri") idJuri: String): ResponseSubmission
 
     @PATCH("juri/{id}")
     suspend fun updateUsertoJuri(
