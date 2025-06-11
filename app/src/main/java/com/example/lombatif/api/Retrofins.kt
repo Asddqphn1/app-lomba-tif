@@ -7,10 +7,15 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
 import java.net.CookiePolicy
+import okhttp3.logging.HttpLoggingInterceptor
 
 object Retrofins {
     private val cookieManager = CookieManager().apply {
         setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+    }
+
+    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY // BODY akan menampilkan semua detail
     }
 
     // Store token dynamically (can be set after login)
@@ -31,6 +36,7 @@ object Retrofins {
             val response = chain.proceed(requestBuilder.build())
             response
         }
+        .addInterceptor(loggingInterceptor) // <-- TAMBAHKAN INTERCEPTOR DI SINI
         .build()
 
     val api: ApiService by lazy {
