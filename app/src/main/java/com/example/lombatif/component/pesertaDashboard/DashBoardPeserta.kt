@@ -42,7 +42,7 @@ import com.example.lombatif.models.get.DaftarLomba
 import com.example.lombatif.models.get.PesertaLomba
 import com.example.lombatif.models.get.PesertaLombaData
 import com.example.lombatif.response.Anggota
-import com.example.lombatif.response.DataLombaUser
+import com.example.lombatif.response.responsePeserta.DataLombaUser
 import com.example.lombatif.response.PendaftaranRequest
 
 import com.example.lombatif.ui.theme.LombaTIFTheme

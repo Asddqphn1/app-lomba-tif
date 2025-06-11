@@ -1,7 +1,7 @@
 package com.example.lombatif.api
 
 
-import com.example.lombatif.response.CloudinaryResponse
+import com.example.lombatif.response.responsePeserta.CloudinaryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Multipart
