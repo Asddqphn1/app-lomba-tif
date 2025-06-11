@@ -88,13 +88,18 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Track if we've fetched the profile
+    // Reset state saat pertama kali masuk ke layar login
+    LaunchedEffect(Unit) {
+        viewLogin.resetState()
+        viewProfile.stateUI = ""
+    }
+
     var hasFetchedProfile by remember { mutableStateOf(false) }
 
+    // Efek saat loginState berubah
     LaunchedEffect(loginState.value) {
         when (val state = loginState.value) {
             is ViewLogin.LoginState.Success -> {
-                // Fetch profile only once after successful login
                 if (!hasFetchedProfile) {
                     viewProfile.fetchProfile()
                     hasFetchedProfile = true
@@ -107,7 +112,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
         }
     }
 
-    // Handle profile state changes
+    // Efek saat profileState berhasil diambil
     LaunchedEffect(profileState) {
         if (profileState != null && hasFetchedProfile) {
             val role = profileState?.profile?.role ?: ""
@@ -124,7 +129,6 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     context.startActivity(Intent(context, DashBoardPeserta::class.java))
                     onLoginSuccess()
                 }
-
                 else -> {
                     showDialog.value = true
                     viewLogin.resetState()
@@ -268,6 +272,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     }
                 )
 
+                // Handle login error state
                 when (val state = loginState.value) {
                     is ViewLogin.LoginState.Loading -> {
                         CircularProgressIndicator()
@@ -288,7 +293,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                     else -> {}
                 }
 
-                // Tampilkan error dari ViewProfile jika ada
+                // Handle profile error
                 if (viewProfile.stateUI.isNotEmpty()) {
                     LaunchedEffect(viewProfile.stateUI) {
                         showDialog.value = true
@@ -298,7 +303,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
                         showDialog = showDialog,
                         onDismiss = {
                             showDialog.value = false
-                            viewProfile.stateUI = "" // Reset stateUI
+                            viewProfile.stateUI = ""
                         }
                     )
                 }
@@ -306,6 +311,7 @@ fun Login(viewLogin: ViewLogin = viewModel(), onLoginSuccess: () -> Unit) {
         }
     }
 }
+
 @Composable
 fun ErrorDialog(
     message: String,
