@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.LocationOn
@@ -353,23 +354,45 @@ fun LombaItemCard(
 
                 InfoRow(icon = Icons.Rounded.CalendarToday, text = formatTanggal(lomba.tanggal.toString()))
                 InfoRow(icon = Icons.Rounded.LocationOn, text = lomba.lokasi ?: "Lokasi")
-                InfoRow(icon = Icons.Rounded.Groups, text = "${lomba.jenisLomba ?: ""} - ${lomba.jumlah_tim ?: 0} Tim")
+
+                val isIndividu = lomba.jenisLomba?.lowercase() == "individu"
+                val jenisLombaText = if (isIndividu) {
+                    "Individu"
+                } else {
+                    "${lomba.jenisLomba ?: ""} - ${lomba.jumlah_tim ?: 0} Tim"
+                }
+                val jenisLombaIcon = if (isIndividu) {
+                    Icons.Default.Person
+                } else {
+                    Icons.Rounded.Groups
+                }
+                InfoRow(icon = jenisLombaIcon, text = jenisLombaText)
             }
+
+            val isSertifikatKosong = lomba.sertifikat.isNullOrEmpty()
 
             Button(
                 onClick = { onDetailClick(lomba.id ?: "") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSertifikatKosong) Color.Black else Color.Gray
+                ),
+                enabled = isSertifikatKosong
             ) {
                 Icon(Icons.Rounded.Send, contentDescription = "Detail Lomba", tint = Color.White)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Kirim Sertifikat", color = Color.White)
+                Text(
+                    text = if (isSertifikatKosong) "Kirim Sertifikat" else "Sudah Dikirim",
+                    color = Color.White
+                )
             }
         }
     }
 }
+
+
 
 @Composable
 private fun InfoRow(icon: ImageVector, text: String) {
