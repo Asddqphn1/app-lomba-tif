@@ -47,4 +47,13 @@ object Retrofins {
             .build()
             .create(ApiService::class.java)
     }
+
+    val cloudinaryApi: CloudinaryApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.cloudinary.com/")
+            .client(client) // Bisa gunakan client yang sama
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(CloudinaryApi::class.java)
+    }
 }

@@ -12,6 +12,7 @@ import com.example.lombatif.models.request.RequestUpdateJuri
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
+import com.example.lombatif.response.responseJuri.ResponseJuriProfile
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponsePesertaAdmin
 import com.example.lombatif.response.PendaftaranRequest
@@ -19,10 +20,16 @@ import com.example.lombatif.response.ResponseKirimSertifikat
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
+import com.example.lombatif.response.responseJuri.ResponseSubmission
 import com.example.lombatif.response.ResponseTambahLomba
 import com.example.lombatif.response.ResponseUpdateJuri
 import com.example.lombatif.response.ResponseUserAdmin
 import com.example.lombatif.response.StatusResponse
+import com.example.lombatif.response.responsePeserta.ResponseLombaDiikuti
+import com.example.lombatif.response.responsePeserta.SubmissionCheckResponse
+
+import com.example.lombatif.response.responsePeserta.SubmissionRequest
+
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -63,6 +70,15 @@ interface ApiService {
     @GET("auth/me")
     suspend fun getProfile() : ResponseProfile
 
+    // Ganti ResponseJuriProfile dengan nama data class yang sesuai untuk response ini
+    @GET("juri/{idUser}")
+    suspend fun getJuriProfile(@Path("idUser") idUser: String): ResponseJuriProfile
+
+    // Ganti ResponseSubmission dengan nama data class yang sesuai
+// Ini akan berisi list dari data submission
+    @GET("penilaian/{idJuri}")
+    suspend fun getSubmissionsForJuri(@Path("idJuri") idJuri: String): ResponseSubmission
+
     @PATCH("juri/{id}")
     suspend fun updateUsertoJuri(
         @Path ("id") id : String,
@@ -89,7 +105,7 @@ interface ApiService {
         @Path("idlomba") idLomba: String,
         @Body body: RequestDaftarLombaPeserta
     ): Response<ResponseDaftarLombaPeserta>
-    
+
     @GET("daftarpeserta")
     suspend fun fetchPeserta(
         @Query("jenis") jenis: String? = null
@@ -97,7 +113,7 @@ interface ApiService {
 
     @GET("daftarpeserta/anggotatim/{id}")
     suspend fun fetchAnggotaTim(@Path("id") id: String): Response<ResponseAnggotaTim>
-    
+
     @GET("daftarlomba/userlomba/{userId}")
     suspend fun getDashboardData(
         @Path("userId") userId: String
@@ -107,6 +123,25 @@ interface ApiService {
     suspend fun getSubmissions(
         @Path("userId") userId: String
     ): Response<DaftarSubmitUser>
+
+    // GET Lomba yang diikuti user
+    @GET("daftarlomba/userlomba/{userId}")
+    suspend fun getLombaDiikuti(@Path("userId") userId: String): ResponseLombaDiikuti
+
+    // GET Cek submission yang ada
+    @GET("submit/submission/{idPesertaLomba}")
+    suspend fun checkSubmission(@Path("idPesertaLomba") idPesertaLomba: String): SubmissionCheckResponse
+
+    // POST Melakukan submission
+    @POST("submit/{idPesertaLomba}")
+    suspend fun postSubmission(
+        @Path("idPesertaLomba") idPesertaLomba: String,
+        @Body request: SubmissionRequest
+    ): StatusResponse
+
+    // DELETE Menghapus submission
+    @DELETE("submit/hapus/{submissionId}")
+    suspend fun deleteSubmission(@Path("submissionId") submissionId: String): StatusResponse
 
     @POST("sertifikat/{idLomba}")
     suspend fun postSertifikat(
