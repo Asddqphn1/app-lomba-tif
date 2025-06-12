@@ -30,7 +30,7 @@
             android:name=".component.DaftarLomba"
             android:exported="false"
             android:label="@string/title_activity_daftar_lomba"
-            android:theme="@style/Theme.LombaTIF"></activity>
+            android:theme="@style/Theme.LombaTIF"/>
         <activity
             android:name=".component.Registrasi"
             android:exported="false"
@@ -39,7 +39,7 @@
         <activity
             android:name=".component.pesertaDashboard.FormSubmitActivity"
             android:exported="false"
-            android:label="@string/title_activity_registrasi"
+            android:label="@string/title_activity_formsubmit"
             android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.pesertaDashboard.DashBoardPeserta"
