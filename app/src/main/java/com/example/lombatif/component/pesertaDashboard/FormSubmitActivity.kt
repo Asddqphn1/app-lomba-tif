@@ -1,6 +1,7 @@
 
 package com.example.lombatif.component.pesertaDashboard
 
+import android.util.Patterns
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -81,10 +82,11 @@ fun FormSubmitScreen(
                 is SubmissionCheckState.Error -> Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
                 is SubmissionCheckState.Success -> {
                     if (state.submission != null) {
-                        // Jika sudah ada submission, tampilkan detailnya
                         SubmittedView(
                             submissionData = state.submission,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            // Teruskan idPesertaLomba ke SubmittedView
+                            idPesertaLomba = idPesertaLomba
                         )
                     } else {
                         // Jika belum, tampilkan form submit URL
@@ -112,16 +114,33 @@ fun SubmitUrlForm(idPesertaLomba: String, viewModel: ViewSubmission) {
             value = url,
             onValueChange = { url = it },
             label = { Text("Masukkan Link URL Submission") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            // Tambahkan isError untuk memberikan feedback visual jika URL tidak valid
+            isError = url.isNotBlank() && !Patterns.WEB_URL.matcher(url).matches()
         )
+        // Tambahkan helper text untuk memberitahu user jika formatnya salah
+        if (url.isNotBlank() && !Patterns.WEB_URL.matcher(url).matches()) {
+            Text(
+                text = "Format URL tidak valid.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
+                // --- AWAL PERUBAHAN VALIDASI ---
                 if (url.isBlank()) {
                     Toast.makeText(context, "URL tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                } else if (!Patterns.WEB_URL.matcher(url).matches()) {
+                    // Cek apakah format URL valid menggunakan Patterns
+                    Toast.makeText(context, "Format URL tidak valid", Toast.LENGTH_SHORT).show()
                 } else {
                     viewModel.submitUrl(idPesertaLomba, url)
                 }
+                // --- AKHIR PERUBAHAN VALIDASI ---
             },
             enabled = submitState !is ActionState.Loading,
             modifier = Modifier.fillMaxWidth()
@@ -137,7 +156,25 @@ fun SubmitUrlForm(idPesertaLomba: String, viewModel: ViewSubmission) {
     // Tampilkan dialog saat submit sukses/gagal
     when (val state = submitState) {
         is ActionState.Success -> {
-            AlertDialog(onDismissRequest = { viewModel.resetActionStates() }, title = { Text("Sukses") }, text = { Text(state.message) }, confirmButton = { TextButton(onClick = { viewModel.resetActionStates() }) { Text("OK") }})
+            // Setelah submit berhasil, kita harus refresh statusnya
+            AlertDialog(
+                onDismissRequest = {
+                    viewModel.resetActionStates()
+                    // Refresh status untuk menampilkan SubmittedView
+                    viewModel.checkSubmissionStatus(idPesertaLomba)
+                },
+                title = { Text("Sukses") },
+                text = { Text(state.message) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.resetActionStates()
+                        // Refresh status untuk menampilkan SubmittedView
+                        viewModel.checkSubmissionStatus(idPesertaLomba)
+                    }) {
+                        Text("OK")
+                    }
+                }
+            )
         }
         is ActionState.Error -> {
             AlertDialog(onDismissRequest = { viewModel.resetActionStates() }, title = { Text("Gagal") }, text = { Text(state.message) }, confirmButton = { TextButton(onClick = { viewModel.resetActionStates() }) { Text("Tutup") }})
@@ -145,11 +182,12 @@ fun SubmitUrlForm(idPesertaLomba: String, viewModel: ViewSubmission) {
         else -> {}
     }
 }
-
 @Composable
 fun SubmittedView(
     submissionData: SubmissionData,
-    viewModel: ViewSubmission
+    viewModel: ViewSubmission,
+    // Tambahkan parameter idPesertaLomba untuk bisa refresh state
+    idPesertaLomba: String
 ) {
     val deleteState by viewModel.deleteState.collectAsState()
     val context = LocalContext.current
@@ -157,23 +195,74 @@ fun SubmittedView(
 
     // State untuk menampilkan dialog konfirmasi hapus
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    // State untuk menampilkan dialog sukses hapus
+    var showDeleteSuccessDialog by remember { mutableStateOf<String?>(null) }
+    // State untuk menampilkan dialog error hapus
+    var showDeleteErrorDialog by remember { mutableStateOf<String?>(null) }
 
-    // Menampilkan pop-up Toast saat delete berhasil/gagal
+
+    // --- AWAL PERUBAHAN: Mengganti Toast dengan Dialog ---
+    // Menggunakan LaunchedEffect untuk merespon perubahan deleteState
     LaunchedEffect(deleteState) {
         when (val state = deleteState) {
             is ActionState.Success -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetActionStates()
+                // Tampilkan pesan sukses di dialog
+                showDeleteSuccessDialog = state.message
             }
             is ActionState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetActionStates()
+                // Tampilkan pesan error di dialog
+                showDeleteErrorDialog = state.message
             }
             else -> {}
         }
     }
 
-    // Dialog konfirmasi sebelum menghapus
+    // Dialog untuk Sukses Hapus
+    if (showDeleteSuccessDialog != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteSuccessDialog = null
+                viewModel.resetActionStates()
+                // REFRESH SCREEN STATE! Ini bagian paling penting.
+                viewModel.checkSubmissionStatus(idPesertaLomba)
+            },
+            title = { Text("Sukses") },
+            text = { Text(showDeleteSuccessDialog!!) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteSuccessDialog = null
+                    viewModel.resetActionStates()
+                    // REFRESH SCREEN STATE!
+                    viewModel.checkSubmissionStatus(idPesertaLomba)
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    // Dialog untuk Gagal Hapus
+    if (showDeleteErrorDialog != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteErrorDialog = null
+                viewModel.resetActionStates()
+            },
+            title = { Text("Gagal") },
+            text = { Text(showDeleteErrorDialog!!) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteErrorDialog = null
+                    viewModel.resetActionStates()
+                }) {
+                    Text("Tutup")
+                }
+            }
+        )
+    }
+    // --- AKHIR PERUBAHAN ---
+
+    // Dialog konfirmasi sebelum menghapus (kode ini sudah benar)
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
@@ -199,7 +288,7 @@ fun SubmittedView(
         )
     }
 
-    // Tampilan utama untuk detail submission
+    // Tampilan utama untuk detail submission (tidak ada perubahan di sini)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -213,22 +302,17 @@ fun SubmittedView(
         ) {
             Text("Detail Submission Anda", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Divider()
-            // Info Lomba
             InfoRow(icon = Icons.Default.Info, text = "Lomba: ${submissionData.pesertaLomba.lomba.nama}")
-            // Info Waktu Submit
             InfoRow(icon = Icons.Default.DateRange, text = "Waktu Submit: ${formatTanggal(submissionData.submissionTime)}")
-            // Info Link Submission (Bisa Diklik)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Default.ThumbUp, contentDescription = "Link", tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                // Menggunakan ClickableText agar link bisa ditekan
                 ClickableText(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
                             textDecoration = TextDecoration.Underline
-                        )
-                        ) {
+                        )) {
                             append(submissionData.fileUrl)
                         }
                     },
@@ -243,12 +327,11 @@ fun SubmittedView(
                 )
             }
             Divider()
-            // Tombol Hapus
             Button(
-                onClick = { showDeleteConfirmDialog = true }, // Tampilkan dialog konfirmasi
+                onClick = { showDeleteConfirmDialog = true },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = deleteState !is ActionState.Loading // Disable tombol saat proses hapus
+                enabled = deleteState !is ActionState.Loading
             ) {
                 if (deleteState is ActionState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)

@@ -1,6 +1,7 @@
 package com.example.lombatif.api
 
 
+import com.example.lombatif.api.pesertaAPI.ApiServicePeserta
 import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -46,6 +47,14 @@ object Retrofins {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
+    }
+    val apiServicePeserta : ApiServicePeserta by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://hono-api-lomba-tif-production.up.railway.app/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiServicePeserta::class.java)
     }
 
     val cloudinaryApi: CloudinaryApi by lazy {
