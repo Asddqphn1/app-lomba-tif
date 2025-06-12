@@ -3,10 +3,10 @@ package com.example.lombatif.component.juriDashboard
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,23 +25,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lombatif.response.DetailSubmissionData
 import com.example.lombatif.utils.formatTanggal
 import com.example.lombatif.viewModels.JuriModels.PenilaianViewModel
-import com.example.lombatif.viewModels.ViewProfile // PERBAIKAN: Import ViewProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PenilaianScreen(
+    // --- PERBAIKAN: Terima juriId sebagai parameter navigasi ---
     submissionId: String,
+    juriId: String,
     onNavigateBack: () -> Unit,
-    viewModel: PenilaianViewModel = viewModel(),
-    // PERBAIKAN: Tambahkan ProfileViewModel untuk mendapatkan ID Juri
-    profileViewModel: ViewProfile = viewModel()
+    viewModel: PenilaianViewModel = viewModel()
+    // profileViewModel dihapus karena tidak lagi dibutuhkan
 ) {
     val context = LocalContext.current
 
-    // PERBAIKAN: Mengambil state dari ProfileViewModel untuk mendapatkan ID Juri
-    val profileState by profileViewModel.profile.collectAsState()
-    val juriId = profileState?.profile?.id ?: ""
-
+    // Semua state dan logika yang berhubungan dengan profileViewModel dihapus
     val submissionDetail by viewModel.submissionDetail.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -51,14 +48,8 @@ fun PenilaianScreen(
     var nilaiState by remember { mutableStateOf("") }
     var catatanState by remember { mutableStateOf("") }
 
-    // Memastikan profile diambil saat screen dibuka
-    LaunchedEffect(Unit) {
-        if (juriId.isEmpty()) {
-            profileViewModel.fetchProfile()
-        }
-    }
-
-    LaunchedEffect(key1 = submissionId) {
+    // Hanya perlu satu LaunchedEffect untuk mengambil detail submission
+    LaunchedEffect(submissionId) {
         viewModel.getDetailSubmission(submissionId)
     }
 
@@ -89,13 +80,18 @@ fun PenilaianScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
+            // Logika loading menjadi lebih sederhana
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator()
+            } else if (error != null) {
+                Text(text = "Gagal memuat data. Coba lagi.")
             } else if (submissionDetail != null) {
                 ContentPenilaian(
                     data = submissionDetail!!,
+                    juriId = juriId, // Langsung gunakan juriId dari parameter
                     nilai = nilaiState,
                     onNilaiChange = { nilaiState = it },
                     catatan = catatanState,
@@ -106,7 +102,7 @@ fun PenilaianScreen(
                         if (nilaiInt == null || nilaiInt !in 1..100) {
                             Toast.makeText(context, "Nilai harus angka antara 1-100", Toast.LENGTH_SHORT).show()
                         } else {
-                            // PERBAIKAN: Mengirim juriId yang sudah didapatkan
+                            Log.d("PenilaianScreen", "Saving with juriId: '$juriId', submissionId: '$submissionId'")
                             viewModel.simpanPenilaian(submissionId, juriId, nilaiInt, catatanState)
                         }
                     },
@@ -115,8 +111,6 @@ fun PenilaianScreen(
                         catatanState = ""
                     }
                 )
-            } else if(error != null) {
-                Text(text = "Gagal memuat data. Coba lagi.", modifier = Modifier.align(Alignment.Center))
             }
         }
     }
@@ -125,6 +119,7 @@ fun PenilaianScreen(
 @Composable
 fun ContentPenilaian(
     data: DetailSubmissionData,
+    juriId: String,
     nilai: String,
     onNilaiChange: (String) -> Unit,
     catatan: String,
@@ -141,6 +136,7 @@ fun ContentPenilaian(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Card: Detail Submission
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Detail Submission", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -149,27 +145,25 @@ fun ContentPenilaian(
                     Column(Modifier.weight(1f)) {
                         DetailItem("Nama Peserta", data.pesertaLomba?.peserta?.nama ?: "Tidak ada data")
                         Spacer(Modifier.height(12.dp))
-                        // PERBAIKAN: Menggunakan .jenisLomba dari data class yang benar
                         DetailItem("Kategori Lomba", data.pesertaLomba?.lomba?.jenisLomba ?: "Tidak ada data")
                     }
                     Column(Modifier.weight(1f)) {
                         DetailItem("Lomba", data.pesertaLomba?.lomba?.nama ?: "Tidak ada data")
                         Spacer(Modifier.height(12.dp))
-                        // PERBAIKAN: Menggunakan .submissionTime
-                        DetailItem("Tanggal Submit", formatTanggal(data.submissionTime ?: "", "dd MMMM<y_bin_46>, HH:mm 'WIB'"))
+                        DetailItem("Tanggal Submit", formatTanggal(data.submissionTime ?: "", "dd MMMM yyyy, HH:mm 'WIB'"))
                     }
                 }
             }
         }
 
+        // Card: File Submission
         Card(modifier = Modifier.fillMaxWidth()) {
             Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    // PERBAIKAN: Menggunakan .fileUrl dari data class yang benar
-                    text = data.fileUrl ?: "Tidak ada file",
+                    text = data.fileUrl?.substringAfterLast('/') ?: "Tidak ada file",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 IconButton(
@@ -190,6 +184,7 @@ fun ContentPenilaian(
             }
         }
 
+        // Card: Form Penilaian
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Form Penilaian", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -201,7 +196,8 @@ fun ContentPenilaian(
                     placeholder = { Text("Masukkan nilai antara 1-100") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    enabled = !isSaving
+                    enabled = !isSaving,
+                    singleLine = true
                 )
                 Spacer(Modifier.height(16.dp))
                 OutlinedTextField(
@@ -216,7 +212,7 @@ fun ContentPenilaian(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     OutlinedButton(onClick = onReset, enabled = !isSaving) { Text("Reset") }
                     Spacer(Modifier.width(8.dp))
-                    Button(onClick = onSimpan, enabled = !isSaving) {
+                    Button(onClick = onSimpan, enabled = !isSaving && juriId.isNotBlank()) {
                         if (isSaving) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                         } else {

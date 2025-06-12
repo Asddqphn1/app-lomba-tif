@@ -6,22 +6,21 @@ package com.example.lombatif.response.responseJuri
 import com.google.gson.annotations.SerializedName
 
 // 1. Response untuk endpoint: GET /juri/{idUser}
-// Versi BARU yang benar
 data class ResponseJuriProfile(
-    @SerializedName("status") val status: String,
-    @SerializedName("data") val data: List<JuriData> // Mengharapkan Array/List
+    @SerializedName("status") val status: String?,
+    @SerializedName("data") val data: List<JuriData>?
 )
 
-// Objek 'data' di dalam ResponseJuriProfile
 data class JuriData(
-    @SerializedName("id") val id: String // Ini adalah idJuri yang kita butuhkan
+    @SerializedName("id") val id: String?
 )
 
 
 // 2. Response untuk endpoint: GET /penilaian/{idJuri}
 data class ResponseSubmission(
     @SerializedName("status") val status: String,
-    @SerializedName("data") val data: List<SubmissionData>
+    // --- PERBAIKAN: Tambahkan '?' agar bisa null ---
+    @SerializedName("data") val data: List<SubmissionData>?
 )
 
 // Objek untuk setiap item di dalam list 'data' pada ResponseSubmission
@@ -31,7 +30,15 @@ data class SubmissionData(
     @SerializedName("id") val id: String,
     @SerializedName("submission_time") val submissionTime: String,
     @SerializedName("pesertalomba") val pesertaLomba: PesertaLomba,
-    @SerializedName("penilaian") val penilaian: List<Any>
+    // --- PERBAIKAN ---
+    @SerializedName("penilaian") val penilaian: List<PenilaianData>
+)
+
+data class PenilaianData(
+    @SerializedName("id") val id: String?,
+    @SerializedName("nilai") val nilai: Int?,
+    @SerializedName("catatan") val catatan: String?
+    // Tambahkan properti lain jika ada
 )
 
 data class PesertaLomba(

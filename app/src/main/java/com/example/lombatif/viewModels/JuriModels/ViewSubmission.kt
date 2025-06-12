@@ -1,6 +1,7 @@
 package com.example.lombatif.viewModels.JuriModels
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lombatif.api.Retrofins
@@ -23,6 +24,10 @@ class ViewSubmission : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    // State untuk menyimpan juriId yang valid
+    private val _juriId = MutableStateFlow<String?>(null)
+    val juriId: StateFlow<String?> = _juriId
+
     init {
         // Langsung panggil alur pengambilan data saat ViewModel dibuat
         fetchJuriSubmissions()
@@ -34,48 +39,45 @@ class ViewSubmission : ViewModel() {
             _error.value = null
 
             try {
-                // --- LANGKAH 1: Dapatkan profil user untuk mendapat idUser ---
+                // LANGKAH 1: Dapatkan idUser (sudah benar)
                 val profileResponse = Retrofins.api.getProfile()
-                val idUser = profileResponse.profile.id
-
-                // Pemeriksaan awal untuk memastikan idUser ada
+                val idUser = profileResponse.profile?.id
                 if (idUser.isNullOrBlank()) {
-                    throw Exception("ID User tidak ditemukan dari profil. Sesi mungkin tidak valid.")
+                    throw Exception("ID User tidak ditemukan dari profil.")
                 }
 
-                // --- LANGKAH 2: Dapatkan profil juri untuk mendapat idJuri ---
+                // LANGKAH 2: Dapatkan profil juri
                 val juriProfileResponse = Retrofins.api.getJuriProfile(idUser = idUser)
-
-                // Periksa status response juri
                 if (juriProfileResponse.status != "success") {
                     throw Exception("Gagal mendapatkan data juri dari server.")
                 }
-                val juriData = juriProfileResponse.data.firstOrNull()
-                    ?: throw Exception("Data juri tidak ditemukan untuk user ini.")
 
+                val juriData = juriProfileResponse.data?.firstOrNull()
+                    ?: throw Exception("Data juri (dalam list) tidak ditemukan untuk user ini.")
+
+                // --- PERBAIKAN: Gunakan .juriId sesuai nama properti di data class JuriData ---
                 val idJuri = juriData.id
-
-                // Pemeriksaan untuk memastikan idJuri ada
                 if (idJuri.isNullOrBlank()) {
                     throw Exception("User ini tidak memiliki profil Juri.")
                 }
 
-                // --- LANGKAH 3: Dapatkan daftar submission untuk juri tersebut ---
-                val submissionResponse = Retrofins.api.getSubmissionsForJuri(
-                    idJuri = idJuri
-                )
+                // Simpan idJuri yang valid ke StateFlow agar bisa digunakan di UI
+                _juriId.value = idJuri
+
+                // LANGKAH 3: Dapatkan daftar submission (sudah benar)
+                val submissionResponse = Retrofins.api.getSubmissionsForJuri(idJuri = idJuri)
                 if (submissionResponse.status == "success") {
-                    _submissions.value = submissionResponse.data
+                    // Pastikan data class ResponseSubmission mengizinkan data untuk null
+                    _submissions.value = submissionResponse.data ?: emptyList()
                 } else {
-                    throw Exception("Gagal mendapatkan daftar submission dari server.")
+                    throw Exception("Gagal mendapatkan daftar submission.")
                 }
 
             } catch (e: Exception) {
-                // Jika terjadi error di langkah manapun, tangkap dan tampilkan pesannya
-                _error.value = e.message ?: "Terjadi kesalahan yang tidak diketahui."
-                e.printStackTrace()
+                val errorMessage = e.message ?: "Terjadi kesalahan yang tidak diketahui."
+                _error.value = errorMessage
+                Log.e("ViewSubmission", "Error fetching submissions: $errorMessage")
             } finally {
-                // Apapun yang terjadi, hentikan loading indicator
                 _isLoading.value = false
             }
         }

@@ -8,7 +8,7 @@ import com.example.lombatif.models.request.RequestLomba
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.models.request.RequestUpdateJuri
-import com.example.lombatif.response.DetailSubmissionResponse
+
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
@@ -16,7 +16,7 @@ import com.example.lombatif.response.responseJuri.ResponseJuriProfile
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponsePesertaAdmin
 import com.example.lombatif.response.PendaftaranRequest
-import com.example.lombatif.response.PenilaianRequest
+
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
@@ -25,6 +25,8 @@ import com.example.lombatif.response.ResponseTambahLomba
 import com.example.lombatif.response.ResponseUpdateJuri
 import com.example.lombatif.response.ResponseUserAdmin
 import com.example.lombatif.response.StatusResponse
+import com.example.lombatif.response.DetailSubmissionResponse
+import com.example.lombatif.response.PenilaianRequest
 import com.example.lombatif.response.responsePeserta.ResponseLombaDiikuti
 import com.example.lombatif.response.responsePeserta.SubmissionCheckResponse
 
@@ -72,7 +74,8 @@ interface ApiService {
 
     // Ganti ResponseJuriProfile dengan nama data class yang sesuai untuk response ini
     @GET("juri/{idUser}")
-    suspend fun getJuriProfile(@Path("idUser") idUser: String): ResponseJuriProfile
+    suspend fun getJuriProfile(@Path("idUser")
+                                   idUser: String): ResponseJuriProfile
 
     // Ganti ResponseSubmission dengan nama data class yang sesuai
 // Ini akan berisi list dari data submission

@@ -35,11 +35,16 @@ class PenilaianViewModel : ViewModel() {
             _error.value = null
             try {
                 val response = apiService.getDetailSubmission(submissionId)
+
+                // --- PERBAIKAN: TAMBAHKAN LOG INI UNTUK MELIHAT DATA MENTAH ---
+                Log.d("PenilaianVM", "Raw Response for submission $submissionId: ${response.body()}")
+
                 if (response.isSuccessful) {
                     _submissionDetail.value = response.body()?.data
                 } else {
+                    val errorBody = response.errorBody()?.string()
                     _error.value = "Gagal memuat detail: ${response.code()} ${response.message()}"
-                    Log.e("PenilaianViewModel", "Error Body: ${response.errorBody()?.string()}")
+                    Log.e("PenilaianViewModel", "Error Body: $errorBody")
                 }
             } catch (e: Exception) {
                 _error.value = "Terjadi kesalahan jaringan: ${e.message}"
@@ -50,7 +55,6 @@ class PenilaianViewModel : ViewModel() {
         }
     }
 
-    // PERBAIKAN: Fungsi ini sekarang menerima juriId
     fun simpanPenilaian(submissionId: String, juriId: String, nilai: Int, catatan: String) {
         viewModelScope.launch {
             _isSaving.value = true
@@ -69,8 +73,9 @@ class PenilaianViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     _saveSuccess.value = true
                 } else {
+                    val errorBody = response.errorBody()?.string()
                     _error.value = "Gagal menyimpan: ${response.code()} ${response.message()}"
-                    Log.e("PenilaianViewModel", "Save Error Body: ${response.errorBody()?.string()}")
+                    Log.e("PenilaianViewModel", "Save Error Body: $errorBody")
                 }
             } catch (e: Exception) {
                 _error.value = "Terjadi kesalahan jaringan: ${e.message}"

@@ -15,7 +15,7 @@ data class DetailSubmissionData(
     // Nama properti di JSON adalah "submission_time"
     @SerializedName("submission_time") val submissionTime: String?,
     // Nama properti di JSON adalah "file"
-    @SerializedName("file") val fileUrl: String?,
+    @SerializedName("file_url") val fileUrl: String?,
     @SerializedName("pesertalomba") val pesertaLomba: PesertaLombaDetail?
 )
 

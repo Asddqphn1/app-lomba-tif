@@ -61,11 +61,6 @@ fun JuriDashboardScreen(
                     )
                 }
             }
-
-            // ============================================
-            // BAGIAN DESAIN YANG HILANG (DIKEMBALIKAN)
-            // ============================================
-            // Kartu Ringkasan
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -75,11 +70,6 @@ fun JuriDashboardScreen(
                     SummaryCard("Sudah Dinilai", "3", Color(0xFFD1FAE5))
                     SummaryCard("Belum Dinilai", "0", Color(0xFFFEE2E2))
                 }
-            }
-
-            // Tabel Submission Terbaru
-            item {
-                SubmissionTerbaru()
             }
             // ============================================
         }
@@ -118,53 +108,9 @@ fun RowScope.SummaryCard(title: String, value: String, backgroundColor: Color) {
     }
 }
 
-@Composable
-fun SubmissionTerbaru() {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Submission Terbaru", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                Text("Lihat Semua", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            // Header Tabel
-            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                Text("NAMA PESERTA", modifier = Modifier.weight(1f), color = Color.Gray, fontSize = 12.sp)
-                Text("NAMA LOMBA", modifier = Modifier.weight(1.5f), color = Color.Gray, fontSize = 12.sp)
-                Text("TANGGAL", modifier = Modifier.weight(1f), color = Color.Gray, fontSize = 12.sp)
-                Text("AKSI", modifier = Modifier.weight(0.5f), color = Color.Gray, fontSize = 12.sp)
-            }
-            Divider()
 
-            // Contoh Baris Tabel
-            SubmissionRow("Dandy Teguh Pratama", "PORSENI VOLI HIMATIF", "11/6/2025")
-        }
-    }
-}
 
-@Composable
-fun SubmissionRow(nama: String, lomba: String, tanggal: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(nama, modifier = Modifier.weight(1f), fontSize = 14.sp)
-        Text(lomba, modifier = Modifier.weight(1.5f), fontSize = 14.sp)
-        Text(tanggal, modifier = Modifier.weight(1f), fontSize = 14.sp)
-        Text("Nilai", modifier = Modifier.weight(0.5f), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-    }
-    Divider()
-}
 
 
 @Preview(showBackground = true)
