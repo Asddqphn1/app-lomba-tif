@@ -1,11 +1,11 @@
-// file: viewModels/ViewSubmission.kt
+package com.example.lombatif.viewModels.JuriModels
 
-package com.example.lombatif.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lombatif.api.Retrofins
-import com.example.lombatif.response.SubmissionData // Pastikan import ini benar
+
+import com.example.lombatif.response.responseJuri.SubmissionData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

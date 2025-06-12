@@ -2,9 +2,6 @@
     <string name="app_name">LombaTIF</string>
     <string name="title_activity_registrasi">Registrasi</string>
     <string name="title_activity_daftar_lomba">DaftarLomba</string>
-
     <string name="title_activity_juri_dashboard">juriDashboard</string>
-
     <string name="title_activity_peserta_admin">PesertaAdmin</string>
-
 </resources>

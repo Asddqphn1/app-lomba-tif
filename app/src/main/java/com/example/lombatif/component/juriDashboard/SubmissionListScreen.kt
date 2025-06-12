@@ -25,13 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lombatif.response.SubmissionData
-import com.example.lombatif.ui.theme.LombaTIFTheme
+import com.example.lombatif.response.responseJuri.SubmissionData
 import com.example.lombatif.utils.formatTanggal
-import com.example.lombatif.viewModels.ViewSubmission
+import com.example.lombatif.viewModels.JuriModels.ViewSubmission
+
 
 @Composable
 fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {

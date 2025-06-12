@@ -1,6 +1,7 @@
 // file: models/response/JuriResponses.kt
 
-package com.example.lombatif.response
+package com.example.lombatif.response.responseJuri
+
 
 import com.google.gson.annotations.SerializedName
 

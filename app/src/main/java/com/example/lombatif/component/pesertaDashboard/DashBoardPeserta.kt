@@ -35,16 +35,21 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.lombatif.R
+import com.example.lombatif.api.Retrofins
 import com.example.lombatif.component.MainActivity
 import com.example.lombatif.component.adminDashboard.ProfileScreen // <-- 1. IMPORT PROFILE SCREEN
 import com.example.lombatif.models.get.DaftarLomba
+import com.example.lombatif.models.get.PesertaLomba
+import com.example.lombatif.models.get.PesertaLombaData
 import com.example.lombatif.response.Anggota
+import com.example.lombatif.response.responsePeserta.DataLombaUser
 import com.example.lombatif.response.PendaftaranRequest
 
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.math.min
 
@@ -147,6 +152,8 @@ fun MainScreen(
                     profileViewModel = profileViewModel
                 )
                 1 -> AllLombaScreen(viewModel = daftarLombaViewModel, userId = userId)
+                2 -> SubmissionListScreen(viewModel = lombaViewModel,
+                    userId = userId)
 
                 // --- 2. KODE DIPERBARUI DI SINI ---
                 4 -> ProfileScreen(
@@ -473,11 +480,77 @@ fun PlaceholderScreen(text: String) {
 }
 
 @Composable
-fun InfoRow(icon: ImageVector, text: String) {
+fun InfoRow(icon: ImageVector, text: String, color: Color = Color.Gray) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = text, fontSize = 14.sp, color = Color.Gray)
+    }
+}
+
+@Composable
+fun SubmissionListScreen(viewModel: ViewLombaUser, userId: String) {
+    val listState by viewModel.lombaState.collectAsState()
+    val context = LocalContext.current
+
+    // Panggil fetch data hanya sekali saat layar dibuat
+    LaunchedEffect(key1 = Unit) {
+        viewModel.fetchUserLomba(userId)
+    }
+
+    when (val state = listState) {
+        is LombaUiState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        is LombaUiState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Error: ${state.message}", color = Color.Red) }
+        is LombaUiState.Success -> {
+            if (state.lombaList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Anda belum terdaftar di lomba manapun.") }
+            } else {
+                LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    items(state.lombaList) { data ->
+                        SubmissionLombaCard(data = data) {
+                            // Navigasi ke FormSubmitActivity
+                            val intent = Intent(context, FormSubmitActivity::class.java).apply {
+                                putExtra("ID_PESERTA_LOMBA", data.idPesertaLomba)
+                                putExtra("NAMA_LOMBA", data.lomba.nama)
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SubmissionLombaCard(data: PesertaLombaData, onSubmitClick: () -> Unit) {
+    val deadlinePassed = remember(data.lomba.batasWaktu) {
+        try {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(data.lomba.batasWaktu)?.before(
+                Date()
+            ) ?: true
+        } catch (e: Exception) {
+            true
+        }
+    }
+    val deadlineColor = if (deadlinePassed) MaterialTheme.colorScheme.error else Color.Gray
+
+    Card(shape = RoundedCornerShape(12.dp), elevation = CardDefaults.cardElevation(4.dp)) {
+        Column {
+            AsyncImage(model = data.lomba.url, contentDescription = data.lomba.nama, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(180.dp))
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(data.lomba.nama, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                InfoRow(icon = Icons.Default.Person, text = "Peserta: ${data.lomba.nama}")
+                InfoRow(icon = Icons.Default.DateRange, text = "Deadline: ${formatTanggal(data.lomba.batasWaktu)}", color = deadlineColor)
+                Button(
+                    onClick = onSubmitClick,
+                    enabled = !deadlinePassed,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (deadlinePassed) "Submission Ditutup" else "Submit Work")
+                }
+            }
+        }
     }
 }
 
