@@ -7,12 +7,15 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -30,28 +34,32 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.lombatif.R
-import com.example.lombatif.api.Retrofins
 import com.example.lombatif.component.MainActivity
 import com.example.lombatif.component.adminDashboard.ProfileScreen // <-- 1. IMPORT PROFILE SCREEN
 import com.example.lombatif.models.get.DaftarLomba
-import com.example.lombatif.models.get.PesertaLomba
 import com.example.lombatif.models.get.PesertaLombaData
+import com.example.lombatif.models.get.modelsPeserta.KlasemenEntry
+import com.example.lombatif.models.get.modelsPeserta.PenilaianDetail
+import com.example.lombatif.models.get.modelsPeserta.PesertaLombaDetail
 import com.example.lombatif.response.Anggota
-import com.example.lombatif.response.responsePeserta.DataLombaUser
 import com.example.lombatif.response.PendaftaranRequest
-
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.*
+import com.example.lombatif.viewModels.PesertaModels.KlasemenState
+import com.example.lombatif.viewModels.PesertaModels.PenilaianState
+import com.example.lombatif.viewModels.PesertaModels.ViewPenilaian
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.min
+import kotlin.math.roundToInt
 
 data class BottomNavItem(
     val title: String,
@@ -64,6 +72,7 @@ class DashBoardPeserta : ComponentActivity() {
     private val submissionViewModel: ViewSubmit by viewModels()
     private val daftarLombaViewModel: ViewDaftarLomba by viewModels()
     private val profileViewModel: ViewProfile by viewModels()
+    private val penilaianViewModel: ViewPenilaian by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +88,7 @@ class DashBoardPeserta : ComponentActivity() {
                     submissionViewModel = submissionViewModel,
                     daftarLombaViewModel = daftarLombaViewModel,
                     profileViewModel = profileViewModel,
+                    penilaianViewModel = penilaianViewModel,
                     userId = userId
                 )
             }
@@ -94,6 +104,7 @@ fun MainScreen(
     submissionViewModel: ViewSubmit,
     daftarLombaViewModel: ViewDaftarLomba,
     profileViewModel: ViewProfile,
+    penilaianViewModel: ViewPenilaian,
     userId: String
 ) {
     val navItems = listOf(
@@ -154,6 +165,7 @@ fun MainScreen(
                 1 -> AllLombaScreen(viewModel = daftarLombaViewModel, userId = userId)
                 2 -> SubmissionListScreen(viewModel = lombaViewModel,
                     userId = userId)
+                3 -> PenilaianScreen(viewModel = penilaianViewModel, userId = userId)
 
                 // --- 2. KODE DIPERBARUI DI SINI ---
                 4 -> ProfileScreen(
@@ -550,6 +562,240 @@ fun SubmissionLombaCard(data: PesertaLombaData, onSubmitClick: () -> Unit) {
                     Text(if (deadlinePassed) "Submission Ditutup" else "Submit Work")
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+fun PenilaianScreen(viewModel: ViewPenilaian, userId: String) {
+    val state by viewModel.penilaianState.collectAsState()
+    val klasemenState by viewModel.klasemenState.collectAsState()
+    var showKlasemenDialog by remember { mutableStateOf(false) }
+    var selectedLombaForKlasemen by remember { mutableStateOf<PesertaLombaDetail?>(null) }
+
+
+    // Tampilkan dialog klasemen jika showKlasemenDialog true
+    if (showKlasemenDialog && selectedLombaForKlasemen != null) {
+        KlasemenDialog(
+            lombaNama = selectedLombaForKlasemen!!.lomba.nama,
+            state = klasemenState,
+            onDismiss = {
+                showKlasemenDialog = false
+                viewModel.clearKlasemenState()
+            }
+        )
+    }
+
+
+    LaunchedEffect(key1 = userId) {
+        viewModel.fetchPenilaian(userId)
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
+        when (val currentState = state) {
+            is PenilaianState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            is PenilaianState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(currentState.message, color = Color.Red) }
+            is PenilaianState.Success -> {
+                // Kita ambil data dari peserta pertama di list (karena ini halaman untuk user yg login)
+                val lombaList = currentState.pesertaList.firstOrNull()?.pesertaLomba ?: emptyList()
+
+                if (lombaList.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Anda belum memiliki penilaian.") }
+                } else {
+                    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        items(lombaList) { pesertaLomba ->
+                            PenilaianLombaCard(
+                                pesertaLomba = pesertaLomba,
+                                onKlasemenClick = {
+                                    selectedLombaForKlasemen = pesertaLomba
+                                    viewModel.fetchKlasemen(pesertaLomba.lomba.id)
+                                    showKlasemenDialog = true
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PenilaianLombaCard(pesertaLomba: PesertaLombaDetail, onKlasemenClick: () -> Unit) {
+    val penilaianList = pesertaLomba.submission?.penilaian ?: emptyList()
+    var isDetailExpanded by remember { mutableStateOf(false) } // State untuk expand/collapse
+
+    val averageScore = if (penilaianList.isNotEmpty()) {
+        penilaianList.mapNotNull { it.nilaiPenilaian.toDoubleOrNull() }.average()
+    } else { 0.0 }
+
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header
+            Row(verticalAlignment = Alignment.CenterVertically) { /* ... sama seperti sebelumnya ... */ }
+
+            // ... (Detail Nilai dan Tombol) ...
+            if (penilaianList.isEmpty()) {
+                Text("Karya Anda belum dinilai oleh juri.", color = Color.Gray)
+            } else {
+                Text("Nilai Rata-rata: ${String.format("%.1f", averageScore)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("Dinilai oleh: ${penilaianList.size} Juri", style = MaterialTheme.typography.bodyMedium)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // PERUBAHAN LOGIKA TOMBOL
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { isDetailExpanded = !isDetailExpanded }, // Toggle state expand
+                    modifier = Modifier.weight(1f),
+                    enabled = penilaianList.isNotEmpty() // Tombol disable jika belum ada penilaian
+                ) {
+                    Text(if (isDetailExpanded) "Tutup Penilaian" else "Lihat Penilaian")
+                }
+                OutlinedButton(onClick = onKlasemenClick, modifier = Modifier.weight(1f)) {
+                    Text("Lihat Klasemen")
+                }
+            }
+
+            // PERUBAHAN: Tampilkan detail jika isDetailExpanded true
+            AnimatedVisibility(visible = isDetailExpanded) {
+                Column(modifier = Modifier.padding(top = 16.dp)) {
+                    Divider()
+                    penilaianList.forEach { penilaian ->
+                        PenilaianDetailItem(penilaian = penilaian)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun KlasemenDialog(
+    lombaNama: String,
+    state: KlasemenState,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Text("Klasemen", style = MaterialTheme.typography.headlineSmall)
+                Text(lombaNama, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            }
+        },
+        text = {
+            Box(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp), // Batasi tinggi
+                contentAlignment = Alignment.Center
+            ) {
+                when (state) {
+                    is KlasemenState.Loading -> CircularProgressIndicator()
+                    is KlasemenState.Error -> Text(state.message, color = Color.Red)
+                    is KlasemenState.Success -> {
+                        if (state.klasemenList.isEmpty()) {
+                            Text("Belum ada data klasemen untuk lomba ini.")
+                        } else {
+                            KlasemenContent(list = state.klasemenList)
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Tutup")
+            }
+        }
+    )
+}
+
+@Composable
+fun KlasemenContent(list: List<KlasemenEntry>) {
+    LazyColumn {
+        // Header
+        item {
+            Row(modifier = Modifier.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Rank", modifier = Modifier.width(50.dp), fontWeight = FontWeight.Bold)
+                Text("Tim/Peserta", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                Text("Poin", modifier = Modifier.width(80.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+            }
+            Divider()
+        }
+        // Data
+        items(list) { entry ->
+            Row(
+                modifier = Modifier.padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Rank
+                Text(entry.rank.toString(), modifier = Modifier.width(50.dp), style = MaterialTheme.typography.bodyLarge)
+
+                // Nama
+                Text(
+                    entry.namaPeserta,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Poin dan Penilaian
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(80.dp)) {
+                    Text(
+                        text = entry.rataRataNilai.roundToInt().toString(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    // BINTANG DIGANTI DENGAN TEKS JUMLAH JURI
+                    Text(
+                        text = "dari ${entry.jumlahPenilaian} juri",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun PenilaianDetailItem(penilaian: PenilaianDetail) {
+    Row(
+        modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = penilaian.nilaiPenilaian,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                "\"${penilaian.deskripsiPenilaian.ifBlank { "Tidak ada deskripsi." }}\"",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                "oleh Juri: ${penilaian.juri.users.nama}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
         }
     }
 }
