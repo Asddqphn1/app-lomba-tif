@@ -2,6 +2,7 @@ package com.example.lombatif.api.pesertaAPI
 
 import com.example.lombatif.models.get.modelsPeserta.KlasemenModels
 import com.example.lombatif.models.get.modelsPeserta.PenilaianModels
+import com.example.lombatif.models.get.modelsPeserta.SertifikatModels
 import retrofit2.http.GET
 import retrofit2.http.Path
 
@@ -15,4 +16,7 @@ interface ApiServicePeserta {
     // ENDPOINT BARU UNTUK KLASMEN
     @GET("penilaian/daftarnilai/{lombaId}")
     suspend fun getKlasemen(@Path("lombaId") lombaId: String): KlasemenModels
+
+    @GET("sertifikat/{lombaId}")
+    suspend fun getSertifikat(@Path("lombaId") lombaId: String): SertifikatModels
 }

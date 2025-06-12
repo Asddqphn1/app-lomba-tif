@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +55,7 @@ import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.*
 import com.example.lombatif.viewModels.PesertaModels.KlasemenState
 import com.example.lombatif.viewModels.PesertaModels.PenilaianState
+import com.example.lombatif.viewModels.PesertaModels.SertifikatState
 import com.example.lombatif.viewModels.PesertaModels.ViewPenilaian
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -572,6 +574,8 @@ fun PenilaianScreen(viewModel: ViewPenilaian, userId: String) {
     val state by viewModel.penilaianState.collectAsState()
     val klasemenState by viewModel.klasemenState.collectAsState()
     var showKlasemenDialog by remember { mutableStateOf(false) }
+    val sertifikatState by viewModel.sertifikatState.collectAsState()
+    var showSertifikatDialog by remember { mutableStateOf(false) }
     var selectedLombaForKlasemen by remember { mutableStateOf<PesertaLombaDetail?>(null) }
 
 
@@ -583,6 +587,16 @@ fun PenilaianScreen(viewModel: ViewPenilaian, userId: String) {
             onDismiss = {
                 showKlasemenDialog = false
                 viewModel.clearKlasemenState()
+            }
+        )
+    }
+
+    if (showSertifikatDialog) {
+        SertifikatDialog(
+            state = sertifikatState,
+            onDismiss = {
+                showSertifikatDialog = false
+                viewModel.clearSertifikatState()
             }
         )
     }
@@ -611,8 +625,13 @@ fun PenilaianScreen(viewModel: ViewPenilaian, userId: String) {
                                     selectedLombaForKlasemen = pesertaLomba
                                     viewModel.fetchKlasemen(pesertaLomba.lomba.id)
                                     showKlasemenDialog = true
+                                },
+                                onSertifikatClick = {
+                                    viewModel.fetchSertifikat(pesertaLomba.lomba.id)
+                                    showSertifikatDialog = true
                                 }
                             )
+
                         }
                     }
                 }
@@ -622,10 +641,11 @@ fun PenilaianScreen(viewModel: ViewPenilaian, userId: String) {
 }
 
 @Composable
-fun PenilaianLombaCard(pesertaLomba: PesertaLombaDetail, onKlasemenClick: () -> Unit) {
+fun PenilaianLombaCard(pesertaLomba: PesertaLombaDetail, onKlasemenClick: () -> Unit, onSertifikatClick: () -> Unit) {
     val penilaianList = pesertaLomba.submission?.penilaian ?: emptyList()
     var isDetailExpanded by remember { mutableStateOf(false) } // State untuk expand/collapse
-
+    val greenColor = Color(0xFF28A745) // Warna hijau dari gambar
+    val blueColor = Color(0xFF0D6EFD)  // Warna biru dari gambar
     val averageScore = if (penilaianList.isNotEmpty()) {
         penilaianList.mapNotNull { it.nilaiPenilaian.toDoubleOrNull() }.average()
     } else { 0.0 }
@@ -647,15 +667,41 @@ fun PenilaianLombaCard(pesertaLomba: PesertaLombaDetail, onKlasemenClick: () -> 
 
             // PERUBAHAN LOGIKA TOMBOL
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Tombol 1: Lihat Penilaian (Biru Solid)
                 Button(
-                    onClick = { isDetailExpanded = !isDetailExpanded }, // Toggle state expand
+                    onClick = { isDetailExpanded = !isDetailExpanded },
                     modifier = Modifier.weight(1f),
-                    enabled = penilaianList.isNotEmpty() // Tombol disable jika belum ada penilaian
+                    enabled = penilaianList.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(containerColor = blueColor)
                 ) {
-                    Text(if (isDetailExpanded) "Tutup Penilaian" else "Lihat Penilaian")
+                    // Teks disesuaikan agar lebih pendek dan rapi
+                    Text(if (isDetailExpanded) "Tutup" else "Penilaian",
+                        fontSize = 6.sp)
                 }
-                OutlinedButton(onClick = onKlasemenClick, modifier = Modifier.weight(1f)) {
-                    Text("Lihat Klasemen")
+
+                // Tombol 2: Lihat Klasemen (Garis Tepi Biru)
+                OutlinedButton(
+                    onClick = onKlasemenClick,
+                    modifier = Modifier.weight(1f)
+                    // Tidak perlu kustomisasi warna, akan mengikuti warna primary theme (biru)
+                ) {
+                    Text("Klasemen",
+                        fontSize = 6.sp)
+                }
+
+                // Tombol 3: Sertifikat (Tetap OutlinedButton, tapi diubah warnanya)
+                OutlinedButton(
+                    onClick = onSertifikatClick,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        // ✅ Mengisi warna latar belakang agar terlihat solid
+                        containerColor = greenColor,
+                        // Mengubah warna teks menjadi putih
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Sertifikat",
+                        fontSize = 6.sp)
                 }
             }
 
@@ -748,7 +794,8 @@ fun KlasemenContent(list: List<KlasemenEntry>) {
                 // Poin dan Penilaian
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(80.dp)) {
                     Text(
-                        text = entry.rataRataNilai.roundToInt().toString(),
+
+                        text = (entry.rataRataNilai ?: 0.0).roundToInt().toString(),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -799,6 +846,49 @@ fun PenilaianDetailItem(penilaian: PenilaianDetail) {
         }
     }
 }
+
+@Composable
+fun SertifikatDialog(state: SertifikatState, onDismiss: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Sertifikat Lomba") },
+        text = {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                when (state) {
+                    is SertifikatState.Loading -> CircularProgressIndicator()
+                    is SertifikatState.Error -> Text(state.message, color = Color.Red, textAlign = TextAlign.Center)
+                    is SertifikatState.Success -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(imageVector = Icons.Filled.CheckCircle, contentDescription = "Success", tint = Color(0xFF4CAF50), modifier = Modifier.size(48.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Sertifikat Anda tersedia!", textAlign = TextAlign.Center)
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (state is SertifikatState.Success) {
+                        uriHandler.openUri(state.sertifikat.url)
+                    }
+                    onDismiss()
+                },
+                enabled = state is SertifikatState.Success
+            ) { Text(if(state is SertifikatState.Success) "Buka Link" else "Tutup") }
+        },
+        dismissButton = {
+            if (state is SertifikatState.Success) {
+                TextButton(onClick = onDismiss) { Text("Tutup") }
+            }
+        }
+    )
+}
+
 
 fun formatTanggal(tanggalString: String): String {
     return try {
