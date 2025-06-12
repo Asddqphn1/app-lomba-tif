@@ -18,6 +18,16 @@ class ViewSubmission : ViewModel() {
     private val _submissions = MutableStateFlow<List<SubmissionData>>(emptyList())
     val submissions: StateFlow<List<SubmissionData>> = _submissions
 
+    // --- 1. TAMBAHKAN STATE BARU UNTUK MENYIMPAN HASIL PERHITUNGAN ---
+    private val _totalCount = MutableStateFlow(0)
+    val totalCount: StateFlow<Int> = _totalCount
+
+    private val _dinilaiCount = MutableStateFlow(0)
+    val dinilaiCount: StateFlow<Int> = _dinilaiCount
+
+    private val _belumDinilaiCount = MutableStateFlow(0)
+    val belumDinilaiCount: StateFlow<Int> = _belumDinilaiCount
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -67,8 +77,16 @@ class ViewSubmission : ViewModel() {
                 // LANGKAH 3: Dapatkan daftar submission (sudah benar)
                 val submissionResponse = Retrofins.api.getSubmissionsForJuri(idJuri = idJuri)
                 if (submissionResponse.status == "success") {
-                    // Pastikan data class ResponseSubmission mengizinkan data untuk null
-                    _submissions.value = submissionResponse.data ?: emptyList()
+                    val submissionList = submissionResponse.data ?: emptyList()
+                    _submissions.value = submissionList
+
+                    // --- 2. HITUNG DAN PERBARUI STATE SETELAH DATA DITERIMA ---
+                    _totalCount.value = submissionList.size
+                    // Logikanya: Jika list 'penilaian' tidak kosong, berarti juri ini sudah menilai.
+                    _dinilaiCount.value = submissionList.count { it.penilaian.isNotEmpty() }
+                    // Jika list 'penilaian' kosong, berarti belum dinilai.
+                    _belumDinilaiCount.value = submissionList.count { it.penilaian.isEmpty() }
+
                 } else {
                     throw Exception("Gagal mendapatkan daftar submission.")
                 }

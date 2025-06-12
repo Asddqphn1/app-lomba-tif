@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lombatif.component.adminDashboard.ProfileScreen
 import com.example.lombatif.ui.theme.LombaTIFTheme
+import com.example.lombatif.viewModels.JuriModels.ViewSubmission
 import com.example.lombatif.viewModels.ViewProfile
 
 
@@ -31,9 +32,16 @@ import com.example.lombatif.viewModels.ViewProfile
 fun JuriDashboardScreen(
     onLogout: () -> Unit,
     profileViewModel: ViewProfile = viewModel(),
+    submissionViewModel: ViewSubmission = viewModel(),
     navController: NavController
 ) {
     var showProfile by remember { mutableStateOf(false) }
+
+    // --- 2. AMBIL STATE DARI VIEWMODEL ---
+    val totalCount by submissionViewModel.totalCount.collectAsState()
+    val dinilaiCount by submissionViewModel.dinilaiCount.collectAsState()
+    val belumDinilaiCount by submissionViewModel.belumDinilaiCount.collectAsState()
+    val isLoading by submissionViewModel.isLoading.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -66,9 +74,22 @@ fun JuriDashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    SummaryCard("Submission Total", "3", Color(0xFFE0E7FF))
-                    SummaryCard("Sudah Dinilai", "3", Color(0xFFD1FAE5))
-                    SummaryCard("Belum Dinilai", "0", Color(0xFFFEE2E2))
+                    val loadingPlaceholder = "..."
+                    SummaryCard(
+                        "Submission Total",
+                        if (isLoading) loadingPlaceholder else totalCount.toString(),
+                        Color(0xFFE0E7FF)
+                    )
+                    SummaryCard(
+                        "Sudah Dinilai",
+                        if (isLoading) loadingPlaceholder else dinilaiCount.toString(),
+                        Color(0xFFD1FAE5)
+                    )
+                    SummaryCard(
+                        "Belum Dinilai",
+                        if (isLoading) loadingPlaceholder else belumDinilaiCount.toString(),
+                        Color(0xFFFEE2E2)
+                    )
                 }
             }
             // ============================================
