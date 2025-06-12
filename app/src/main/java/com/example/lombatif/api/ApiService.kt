@@ -9,6 +9,7 @@ import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.models.request.RequestSertifikat
 import com.example.lombatif.models.request.RequestUpdateJuri
+
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
@@ -25,6 +26,8 @@ import com.example.lombatif.response.ResponseTambahLomba
 import com.example.lombatif.response.ResponseUpdateJuri
 import com.example.lombatif.response.ResponseUserAdmin
 import com.example.lombatif.response.StatusResponse
+import com.example.lombatif.response.DetailSubmissionResponse
+import com.example.lombatif.response.PenilaianRequest
 import com.example.lombatif.response.responsePeserta.ResponseLombaDiikuti
 import com.example.lombatif.response.responsePeserta.SubmissionCheckResponse
 
@@ -72,7 +75,8 @@ interface ApiService {
 
     // Ganti ResponseJuriProfile dengan nama data class yang sesuai untuk response ini
     @GET("juri/{idUser}")
-    suspend fun getJuriProfile(@Path("idUser") idUser: String): ResponseJuriProfile
+    suspend fun getJuriProfile(@Path("idUser")
+                                   idUser: String): ResponseJuriProfile
 
     // Ganti ResponseSubmission dengan nama data class yang sesuai
 // Ini akan berisi list dari data submission
@@ -139,14 +143,28 @@ interface ApiService {
         @Body request: SubmissionRequest
     ): StatusResponse
 
-    // DELETE Menghapus submission
+
     @DELETE("submit/hapus/{submissionId}")
     suspend fun deleteSubmission(@Path("submissionId") submissionId: String): StatusResponse
+
+    @GET("submit/{id}")
+    suspend fun getDetailSubmission(
+        @Path("id") submissionId: String
+    ): Response<DetailSubmissionResponse>
+
+
+    @POST("penilaian/{submissionId}/{juriId}")
+    suspend fun postPenilaian(
+        @Path("submissionId") submissionId: String,
+        @Path("juriId") juriId: String,
+        @Body penilaianRequest: PenilaianRequest
+    ): Response<Unit>
 
     @POST("sertifikat/{idLomba}")
     suspend fun postSertifikat(
         @Path("idLomba") id: String,
         @Body sertifikat: RequestSertifikat
     ): Response<ResponseKirimSertifikat>
+
 
 }

@@ -10,9 +10,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,25 +26,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lombatif.response.responseJuri.SubmissionData
+import com.example.lombatif.response.responseJuri.SubmissionData // DIUBAH: Menggunakan import ini
 import com.example.lombatif.utils.formatTanggal
 import com.example.lombatif.viewModels.JuriModels.ViewSubmission
 
-
 @Composable
-fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Halaman Daftar Submission")
-    }
+fun SubmissionListScreen(
+    viewModel: ViewSubmission, // DIUBAH: ViewModel sekarang wajib diisi dari NavHost
+    onNavigateToPenilaian: (String) -> Unit // DIUBAH: Menambahkan lambda untuk navigasi
+) {
     val submissions by viewModel.submissions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
-    // Latar belakang dengan gradasi halus untuk kesan modern
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
             MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -58,7 +52,6 @@ fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {
             .fillMaxSize()
             .background(backgroundBrush)
     ) {
-        // --- Header Kustom ---
         Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 16.dp)) {
             Text(
                 text = "Submisi Penilaian",
@@ -74,25 +67,11 @@ fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {
             )
         }
 
-        // --- Daftar Kartu Submission ---
         Box(modifier = Modifier.fillMaxSize()) {
             when {
-                isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                error != null -> {
-                    Text(
-                        "Error: $error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                    )
-                }
-                submissions.isEmpty() && !isLoading -> {
-                    Text(
-                        "Tidak ada submission untuk dinilai saat ini.",
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                    )
-                }
+                isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                error != null -> Text("Error: $error", color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center).padding(16.dp))
+                submissions.isEmpty() && !isLoading -> Text("Tidak ada submission untuk dinilai saat ini.", modifier = Modifier.align(Alignment.Center).padding(16.dp))
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -100,7 +79,11 @@ fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {
                         modifier = Modifier.animateContentSize()
                     ) {
                         items(submissions, key = { it.id }) { submission ->
-                            SubmissionItemCard(submission)
+                            // DIUBAH: Meneruskan aksi klik ke item kartu
+                            SubmissionItemCard(
+                                submission = submission,
+                                onCardClick = { onNavigateToPenilaian(submission.id) }
+                            )
                         }
                     }
                 }
@@ -111,19 +94,13 @@ fun SubmissionListScreen(viewModel: ViewSubmission = viewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubmissionItemCard(submission: SubmissionData) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Halaman Daftar Submission")
-    }
+fun SubmissionItemCard(
+    submission: SubmissionData,
+    onCardClick: () -> Unit // DIUBAH: Menambahkan parameter untuk aksi klik
+) {
     val isBelumDinilai = submission.penilaian.isEmpty()
-    // Gradasi warna untuk kartu yang belum dinilai
     val cardBrush = if (isBelumDinilai) {
-        Brush.linearGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                MaterialTheme.colorScheme.surface
-            )
-        )
+        Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f), MaterialTheme.colorScheme.surface))
     } else {
         Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))
     }
@@ -132,7 +109,7 @@ fun SubmissionItemCard(submission: SubmissionData) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        onClick = { /* TODO: Navigasi ke halaman penilaian */ },
+        onClick = onCardClick, // DIUBAH: Menggunakan aksi klik di sini
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Box(modifier = Modifier.background(cardBrush)) {
@@ -140,7 +117,6 @@ fun SubmissionItemCard(submission: SubmissionData) {
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // --- Baris Atas: Nama & Status ---
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -156,7 +132,6 @@ fun SubmissionItemCard(submission: SubmissionData) {
                     StatusChip(status = if (isBelumDinilai) "Perlu Dinilai" else "Selesai")
                 }
 
-                // --- Info Kategori & Tanggal dengan Ikon ---
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     InfoChip(
                         icon = Icons.Default.List,
@@ -165,22 +140,21 @@ fun SubmissionItemCard(submission: SubmissionData) {
                     )
                     InfoChip(
                         icon = Icons.Default.DateRange,
-                        text = formatTanggal(submission.submissionTime, "EEEE, d MMMM yyyy"),
+                        text = formatTanggal(submission.submissionTime, "EEEE, d MMMM YYYY"),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // --- Tombol Aksi ---
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Button(
-                        onClick = { /* TODO: Navigasi ke halaman penilaian */ },
+                        onClick = onCardClick, // DIUBAH: Menggunakan aksi klik di sini juga
                         enabled = isBelumDinilai,
                         shape = CircleShape,
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                     ) {
                         Text("Detail & Nilai")
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Icon(Icons.Outlined.ArrowForward, contentDescription = "Beri Nilai")
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Beri Nilai")
                     }
                 }
             }
@@ -188,23 +162,12 @@ fun SubmissionItemCard(submission: SubmissionData) {
     }
 }
 
+// Tidak ada perubahan di bawah ini, sudah benar
 @Composable
 fun InfoChip(icon: ImageVector, text: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(20.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = color,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = color, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -220,17 +183,9 @@ fun StatusChip(status: String) {
     }
 
     Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(backgroundColor).padding(horizontal = 12.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = status,
-            color = textColor,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = status, color = textColor, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
     }
 }
