@@ -1,5 +1,8 @@
 package com.example.lombatif.component.adminDashboard
 
+import android.content.Context
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,28 +12,35 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.EmojiPeople
+import androidx.compose.material.icons.rounded.Gavel
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,10 +52,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.lombatif.component.MainActivity
 import com.example.lombatif.models.get.PesertaAdmin
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewAnggotaTim
@@ -116,10 +125,22 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .background(Color.White)
         ) {
+            val context = LocalContext.current
             if (showProfile) {
                 ProfileScreen(
                     onBack = { showProfile = false },
-                    onLogout = {}
+                    onLogout = {
+
+                        // Clear SharedPreferences
+                        val sharedPref = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        sharedPref.edit().clear().apply()
+
+                        // Intent ke MainActivity
+                        val intent = Intent(context, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        context.startActivity(intent)
+                    }
                 )
             } else {
                 if (selectedTab == 0) {
@@ -173,73 +194,141 @@ fun DashboardScreen(
                         onUpdate = { updatedUser -> println("Edit user: ${updatedUser.id}") },
                         onDelete = { deletedUser -> println("Hapus user: ${deletedUser.id}") }
                     )
+                    5 -> LombaScreen(
+
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(onProfileClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(30.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Lomba Tif", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        IconButton(onClick = onProfileClick) {
-            Icon(Icons.Default.AccountCircle, contentDescription = "User", modifier = Modifier.size(28.dp))
-        }
-    }
+    TopAppBar(
+        title = {
+            Text(
+                "WELCOME, ADMIN! ",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        actions = {
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    imageVector = Icons.Rounded.AccountCircle,
+                    contentDescription = "User Profile",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface
+        )
+    )
 }
 
 @Composable
 fun StatsSection(userCount: Int, pesertaCount: Int, juriCount: Int, lombaCount: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text("Selamat Datang Admin", fontSize = 18.sp, fontFamily = FontFamily.SansSerif)
-    }
-
     val cards = listOf(
-        StatCardData("Total User", userCount.toString(), Color(0xFFD8E9FF), Icons.Default.Face),
-        StatCardData("Total Peserta", pesertaCount.toString(), Color(0xFFDFF6E3), Icons.Default.Person),
-        StatCardData("Total Juri", juriCount.toString(), Color(0xFFE8DFFF), Icons.Default.Check),
-        StatCardData("Total Lomba", lombaCount.toString(), Color(0xFFFFF4D8), Icons.Default.ThumbUp)
+        StatCardData(
+            title = "Total User",
+            count = userCount.toString(),
+            icon = Icons.Rounded.Groups,
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        StatCardData(
+            title = "Total Peserta",
+            count = pesertaCount.toString(),
+            icon = Icons.Rounded.Person,
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+        ),
+        StatCardData(
+            title = "Total Juri",
+            count = juriCount.toString(),
+            icon = Icons.Rounded.Gavel, // Ikon palu hakim untuk juri
+            backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        StatCardData(
+            title = "Total Lomba",
+            count = lombaCount.toString(),
+            icon = Icons.Rounded.EmojiEvents, // Ikon untuk kategori/jenis lomba
+            backgroundColor = Color(0xFFFFF4D8), // Warna custom bisa tetap dipakai jika suka
+            contentColor = Color(0xFF6D5B23)
+        )
     )
 
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        cards.forEach { StatCard(it.title, it.count, it.backgroundColor, it.icon) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(1), // Ubah ke 2 untuk tampilan 2 kolom
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(cards) { cardData ->
+                StatCard(
+                    title = cardData.title,
+                    count = cardData.count,
+                    icon = cardData.icon,
+                    backgroundColor = cardData.backgroundColor,
+                    contentColor = cardData.contentColor
+                )
+            }
+        }
     }
 }
 
+
 @Composable
-fun StatCard(title: String, count: String, background: Color, icon: ImageVector) {
+fun StatCard(
+    title: String,
+    count: String,
+    icon: ImageVector,
+    backgroundColor: Color,
+    contentColor: Color
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        colors = CardDefaults.cardColors(containerColor = background)
+        modifier = Modifier.fillMaxWidth(),
+        // DIUBAH: Menggunakan warna dari parameter dan menambahkan elevasi untuk efek 'mengambang'
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = MaterialTheme.shapes.large // Sudut kartu yang lebih rounded
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(20.dp), // Padding yang sedikit lebih besar
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween // Memberi jarak antara grup ikon & teks dengan angka
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(36.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(title, fontSize = 14.sp)
-                Text(count, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // DIUBAH: Ikon diberi background agar lebih menonjol
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(40.dp), // Ukuran ikon diperbesar
+                    tint = contentColor
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge, // Menggunakan style dari tema
+                        color = contentColor
+                    )
+                    Text(
+                        text = count,
+                        style = MaterialTheme.typography.headlineMedium, // Angka dibuat lebih besar
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
+                }
             }
         }
     }
