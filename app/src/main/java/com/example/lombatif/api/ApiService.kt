@@ -8,6 +8,7 @@ import com.example.lombatif.models.request.RequestLomba
 import com.example.lombatif.response.ResponseDaftarLomba
 import com.example.lombatif.models.request.RequestRegister
 import com.example.lombatif.models.request.RequestUpdateJuri
+import com.example.lombatif.response.DetailSubmissionResponse
 import com.example.lombatif.response.ResponseAnggotaTim
 import com.example.lombatif.response.ResponseDaftarLombaPeserta
 import com.example.lombatif.response.ResponseJuriAdmin
@@ -15,6 +16,7 @@ import com.example.lombatif.response.responseJuri.ResponseJuriProfile
 import com.example.lombatif.response.ResponseLogin
 import com.example.lombatif.response.ResponsePesertaAdmin
 import com.example.lombatif.response.PendaftaranRequest
+import com.example.lombatif.response.PenilaianRequest
 import com.example.lombatif.response.ResponseLombaDetail
 import com.example.lombatif.response.ResponseProfile
 import com.example.lombatif.response.ResponseReqRegister
@@ -137,8 +139,21 @@ interface ApiService {
         @Body request: SubmissionRequest
     ): StatusResponse
 
-    // DELETE Menghapus submission
+
     @DELETE("submit/hapus/{submissionId}")
     suspend fun deleteSubmission(@Path("submissionId") submissionId: String): StatusResponse
+
+    @GET("submit/{id}")
+    suspend fun getDetailSubmission(
+        @Path("id") submissionId: String
+    ): Response<DetailSubmissionResponse>
+
+
+    @POST("penilaian/{submissionId}/{juriId}")
+    suspend fun postPenilaian(
+        @Path("submissionId") submissionId: String,
+        @Path("juriId") juriId: String,
+        @Body penilaianRequest: PenilaianRequest
+    ): Response<Unit>
 
 }

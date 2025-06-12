@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.lombatif.component.adminDashboard.ProfileScreen
 import com.example.lombatif.ui.theme.LombaTIFTheme
 import com.example.lombatif.viewModels.ViewProfile
@@ -28,7 +30,8 @@ import com.example.lombatif.viewModels.ViewProfile
 @Composable
 fun JuriDashboardScreen(
     onLogout: () -> Unit,
-    profileViewModel: ViewProfile = viewModel()
+    profileViewModel: ViewProfile = viewModel(),
+    navController: NavController
 ) {
     var showProfile by remember { mutableStateOf(false) }
 
@@ -168,6 +171,6 @@ fun SubmissionRow(nama: String, lomba: String, tanggal: String) {
 @Composable
 fun JuriDashboardScreenPreview() {
     LombaTIFTheme {
-        JuriDashboardScreen(onLogout = {})
+        JuriDashboardScreen(onLogout = {}, navController = NavController(LocalContext.current))
     }
 }

@@ -9,10 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.lombatif.viewModels.JuriModels.ViewSubmission
 import com.example.lombatif.viewModels.ViewProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,9 +23,14 @@ import com.example.lombatif.viewModels.ViewProfile
 fun JuriMainScreen() {
     val navController = rememberNavController()
     val screens = listOf(JuriScreen.Dashboard, JuriScreen.Submissions)
+
+    // --- ViewModel diinisialisasi di sini sebagai sumber data utama ---
     val profileViewModel: ViewProfile = viewModel()
-    val onLogout: () -> Unit = { // <-- TAMBAHKAN TIPE SECARA EKSPLISIT
+    val submissionViewModel: ViewSubmission = viewModel()
+
+    val onLogout: () -> Unit = {
         Log.d("JuriMainScreen", "Logout diklik!")
+        // TODO: Tambahkan logika logout di sini
     }
 
     Scaffold(
@@ -53,13 +61,38 @@ fun JuriMainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(JuriScreen.Dashboard.route) {
-                // Baris ini memanggil fungsi di bawah
                 JuriDashboardScreen(
                     onLogout = onLogout,
-                    profileViewModel = profileViewModel
+                    profileViewModel = profileViewModel,
+                    navController = navController
                 )
             }
-            composable(JuriScreen.Submissions.route) { SubmissionListScreen() }
+
+            composable(JuriScreen.Submissions.route) {
+                SubmissionListScreen(
+                    viewModel = submissionViewModel,
+                    onNavigateToPenilaian = { submissionId ->
+                        navController.navigate("penilaian_screen/$submissionId")
+                    }
+                )
+            }
+
+            composable(
+                route = "penilaian_screen/{submissionId}",
+                arguments = listOf(navArgument("submissionId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val submissionId = backStackEntry.arguments?.getString("submissionId")
+
+                if (submissionId != null) {
+                    // PERBAIKAN: Meneruskan profileViewModel ke PenilaianScreen
+                    // agar bisa mendapatkan ID juri saat menyimpan penilaian.
+                    PenilaianScreen(
+                        submissionId = submissionId,
+                        onNavigateBack = { navController.popBackStack() },
+                        profileViewModel = profileViewModel
+                    )
+                }
+            }
         }
     }
 }
