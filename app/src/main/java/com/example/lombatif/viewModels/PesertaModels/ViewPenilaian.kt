@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.lombatif.api.Retrofins
 import com.example.lombatif.models.get.modelsPeserta.KlasemenEntry
 import com.example.lombatif.models.get.modelsPeserta.PesertaPenilaian
+import com.example.lombatif.models.get.modelsPeserta.SertifikatData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,6 +19,14 @@ sealed interface PenilaianState {
     data class Error(val message: String) : PenilaianState
 }
 
+// State baru untuk UI Sertifikat
+sealed interface SertifikatState {
+    object Idle : SertifikatState
+    object Loading : SertifikatState
+    data class Success(val sertifikat: SertifikatData) : SertifikatState
+    data class Error(val message: String) : SertifikatState
+}
+
 sealed interface KlasemenState {
     object Idle : KlasemenState
     object Loading : KlasemenState
@@ -28,6 +37,10 @@ sealed interface KlasemenState {
 class ViewPenilaian : ViewModel() {
     private val _penilaianState = MutableStateFlow<PenilaianState>(PenilaianState.Loading)
     val penilaianState = _penilaianState.asStateFlow()
+
+    private val _sertifikatState = MutableStateFlow<SertifikatState>(SertifikatState.Idle)
+    val sertifikatState = _sertifikatState.asStateFlow()
+
 
     private val _klasemenState = MutableStateFlow<KlasemenState>(KlasemenState.Idle)
     val klasemenState = _klasemenState.asStateFlow()
@@ -60,7 +73,7 @@ class ViewPenilaian : ViewModel() {
 
                     // 2. Hitung rata-rata dan jumlah penilaian untuk setiap peserta
                     val processedList = groupedByPeserta.map { (nama, nilaiList) ->
-                        val totalNilai = nilaiList.sumOf { it.nilai.toDoubleOrNull() ?: 0.0 }
+                        val totalNilai = nilaiList.sumOf { it.nilai?.toDoubleOrNull() ?: 0.0 }
                         val jumlahPenilaian = nilaiList.size
                         val rataRata = if (jumlahPenilaian > 0) totalNilai / jumlahPenilaian else 0.0
 
@@ -94,5 +107,26 @@ class ViewPenilaian : ViewModel() {
     // Fungsi untuk mereset state klasemen setelah dialog ditutup
     fun clearKlasemenState() {
         _klasemenState.value = KlasemenState.Idle
+    }
+
+    fun fetchSertifikat(lombaId: String) {
+        viewModelScope.launch {
+            _sertifikatState.value = SertifikatState.Loading
+            try {
+                val response = Retrofins.apiServicePeserta.getSertifikat(lombaId)
+                if (response.status == "success" && response.data != null) {
+                    _sertifikatState.value = SertifikatState.Success(response.data)
+                } else {
+                    _sertifikatState.value = SertifikatState.Error(response.message)
+                }
+            } catch (e: Exception) {
+                _sertifikatState.value = SertifikatState.Error(e.message ?: "Gagal memuat sertifikat")
+            }
+        }
+    }
+
+    // Fungsi untuk mereset state sertifikat setelah dialog ditutup
+    fun clearSertifikatState() {
+        _sertifikatState.value = SertifikatState.Idle
     }
 }

@@ -17,9 +17,10 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".component.juriDashboard.juriDashboard"
+            android:name=".component.adminDashboard.Sertifikat"
             android:exported="false"
-            android:label="@string/title_activity_juri_dashboard"/>
+            android:label="@string/title_activity_sertifikat"
+            android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.adminDashboard.PesertaAdminActivity"
             android:exported="false"
@@ -38,18 +39,14 @@
         <activity
             android:name=".component.pesertaDashboard.FormSubmitActivity"
             android:exported="false"
-            android:label="@string/title_activity_registrasi"
+            android:label="@string/title_activity_formsubmit"
             android:theme="@style/Theme.LombaTIF" />
         <activity
             android:name=".component.pesertaDashboard.DashBoardPeserta"
             android:exported="false"
             android:label="@string/title_activity_registrasi"
             android:theme="@style/Theme.LombaTIF" />
-
-
-
         <activity android:name=".component.adminDashboard.UpdateJuri" />
-
 
         <activity
             android:name=".component.MainActivity"
@@ -66,7 +63,7 @@
             android:name=".component.adminDashboard.MainDashboard"
             android:exported="true"
             android:label="Dashboard Admin"
-            android:theme="@style/Theme.LombaTIF"/>
+            android:theme="@style/Theme.LombaTIF" />
     </application>
 
 </manifest>

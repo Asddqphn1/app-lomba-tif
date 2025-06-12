@@ -10,7 +10,7 @@ data class KlasemenModels(
 
 // Kelas untuk satu item mentah dari API
 data class KlasemenItemRaw(
-    @SerializedName("nilai") val nilai: String,
+    @SerializedName("nilai") val nilai: String?,
     @SerializedName("peserta") val peserta: KlasemenPeserta,
     @SerializedName("lomba") val lomba: KlasemenLomba
 )
@@ -26,8 +26,8 @@ data class KlasemenLomba(
 
 // Kelas yang sudah diproses untuk ditampilkan di UI
 data class KlasemenEntry(
-    val rank: Int,
+    val rank: Int?,
     val namaPeserta: String,
-    val rataRataNilai: Double,
-    val jumlahPenilaian: Int
+    val rataRataNilai: Double?,
+    val jumlahPenilaian: Int?
 )
