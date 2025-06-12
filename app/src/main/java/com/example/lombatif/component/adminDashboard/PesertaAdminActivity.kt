@@ -8,16 +8,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -69,7 +73,29 @@ fun PesertaListScreen(
     onLihatAnggota: (PesertaAdmin) -> Unit,
     anggotaViewModel: ViewAnggotaTim
 ) {
+    var selectedKategori by remember { mutableStateOf("Semua") }
+    var selectedLomba by remember { mutableStateOf("Semua Lomba") }
     var selectedPeserta by remember { mutableStateOf<PesertaAdmin?>(null) }
+    var expanded by remember { mutableStateOf(false) }
+
+    val lombaList = listOf("Semua Lomba") + pesertaList
+        .mapNotNull { it.pesertalomba.firstOrNull()?.lomba?.nama }
+        .distinct()
+
+    val kategoriOptions = listOf("Semua", "TIM", "INDIVIDU")
+
+    val filteredPesertaList = pesertaList.filter { peserta ->
+        val kategoriMatch = when (selectedKategori) {
+            "TIM" -> peserta.pesertalomba.firstOrNull()?.lomba?.jenis_lomba.equals("tim", ignoreCase = true)
+            "INDIVIDU" -> peserta.pesertalomba.firstOrNull()?.lomba?.jenis_lomba.equals("individu", ignoreCase = true)
+            else -> true
+        }
+
+        val lombaMatch = if (selectedLomba == "Semua Lomba") true
+        else peserta.pesertalomba.firstOrNull()?.lomba?.nama == selectedLomba
+
+        kategoriMatch && lombaMatch
+    }
 
     LazyColumn(
         modifier = modifier
@@ -78,45 +104,157 @@ fun PesertaListScreen(
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         item {
-            Text(
-                text = "Daftar Peserta",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Header judul
+                Text(
+                    text = "Daftar Peserta",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Layout filter Kategori dan Lomba sejajar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Filter Kategori - kiri
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        kategoriOptions.forEach { kategori ->
+                            val isSelected = selectedKategori == kategori
+                            val backgroundColor = when (kategori) {
+                                "Semua" -> Color(0xFF58D68D)
+                                "TIM" -> Color(0xFFFF6600)
+                                "INDIVIDU" -> Color(0xFF5DADE2)
+                                else -> Color.LightGray
+                            }
+                            val textColor = if (isSelected) Color.White else Color.Black
+
+                            Button(
+                                onClick = { selectedKategori = kategori },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isSelected) backgroundColor else backgroundColor.copy(alpha = 0.5f),
+                                    contentColor = textColor
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier
+                                    .height(36.dp)
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                Text(
+                                    text = kategori.uppercase(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    // Filter Lomba - kanan
+                    Box(modifier = Modifier.weight(0.6f), contentAlignment = Alignment.CenterEnd) {
+                        TextButton(
+                            onClick = { expanded = true },
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier
+                                .height(36.dp)
+                                .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
+                        ) {
+                            Text(
+                                selectedLomba,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black
+                            )
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Filter",
+                                tint = Color.Black
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            lombaList.forEach { lomba ->
+                                DropdownMenuItem(
+                                    text = { Text(lomba) },
+                                    onClick = {
+                                        selectedLomba = lomba
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
 
+        // Daftar peserta
         when {
             isLoading -> {
                 items(5) {
-                    PesertaItemPlaceholder()
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PesertaItemPlaceholder()
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
+
             errorMessage != null -> {
                 item {
-                    Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text("Error: $errorMessage", color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
-            pesertaList.isEmpty() -> {
+
+            filteredPesertaList.isEmpty() -> {
                 item {
-                    Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Belum ada peserta yang mendaftar.")
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Belum ada peserta yang sesuai filter.")
                     }
                 }
             }
+
             else -> {
-                itemsIndexed(pesertaList, key = { _, peserta -> peserta.id }) { index, peserta ->
-                    PesertaItem(
-                        index = index + 1,
-                        peserta = peserta,
-                        onLihatAnggotaClick = {
-                            selectedPeserta = peserta
-                            onLihatAnggota(peserta)
-                        }
-                    )
+                itemsIndexed(filteredPesertaList, key = { _, peserta -> peserta.id }) { index, peserta ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PesertaItem(
+                            index = index + 1,
+                            peserta = peserta,
+                            onLihatAnggotaClick = {
+                                selectedPeserta = peserta
+                                onLihatAnggota(peserta)
+                            }
+                        )
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -144,65 +282,99 @@ fun PesertaItem(
     onLihatAnggotaClick: (PesertaAdmin) -> Unit
 ) {
     val lomba = peserta.pesertalomba.firstOrNull()?.lomba
+    val isTim = lomba?.jenis_lomba?.equals("Tim", ignoreCase = true) == true
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = peserta.nama,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                "No. Pendaftaran: $index",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            if (lomba != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BadgeKategori(kategori = lomba.jenis_lomba)
-                    Text(lomba.nama, style = MaterialTheme.typography.bodyLarge)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
+            // Nomor dan nama peserta
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "${index}.",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = peserta.nama,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Kategori Lomba (badge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Kategori: ", style = MaterialTheme.typography.bodySmall)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            if (isTim) Color(0xFFFF6600)
+                            else Color(0xFFD6E7FF)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = if (isTim) "TIM" else "INDIVIDU",
+                        color = if (isTim) Color.White else Color.Black,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Nama Lomba
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Tanggal Pendaftaran",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = Icons.Default.EmojiEvents,
+                    contentDescription = "Nama Lomba",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    text = "Daftar pada: ${peserta.created_at.toReadableDate()}",
+                    text = lomba?.nama ?: "-",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            if (lomba?.jenis_lomba?.equals("Tim", ignoreCase = true) == true) {
-                Spacer(modifier = Modifier.height(16.dp))
+
+            // Tanggal Daftar
+            Text(
+                text = "Tanggal Daftar: ${peserta.created_at.toReadableDate()}",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            // Tombol Aksi
+            if (isTim) {
+                Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = { onLihatAnggotaClick(peserta) },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)),
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Lihat Anggota", color = MaterialTheme.colorScheme.onPrimary)
+                    Text("Lihat Anggota", color = Color.White)
                 }
             }
         }
     }
 }
+
+
 @Composable
 fun AnggotaTimDialog(
     namaPeserta: String,
@@ -274,21 +446,18 @@ fun AnggotaTimDialog(
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun String.toReadableDate(): String {
     return try {
-        // ISO_DATE_TIME cocok untuk format seperti "2023-10-27T10:00:00.000000Z"
         val inputFormatter = DateTimeFormatter.ISO_DATE_TIME
         val outputFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("id", "ID"))
         val date = LocalDateTime.parse(this, inputFormatter)
         date.format(outputFormatter)
     } catch (e: Exception) {
-        this // Kembalikan string asli jika gagal parse
+        this
     }
 }
 
-// Tambahkan Composable ini di file PesertaAdminActivity.kt
 @Composable
 fun PesertaItemPlaceholder() {
     val shimmerBrush = ShimmerBrush()
